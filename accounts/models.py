@@ -16,9 +16,8 @@ from .managers import CustomUserManager
 
 # Create your models here.
 class BaseUser(AbstractUser):
-    username = None
     
-    key = models.UUIDField(primary_key=True)
+    key = models.UUIDField(primary_key=True, default=uuid.uuid4)
 
     first_name = models.CharField(_("first name"), max_length=150, null=True)
 
@@ -33,7 +32,7 @@ class BaseUser(AbstractUser):
 
     phone = PhoneNumberField(_("phone number"), null=True)
 
-    description = models.TextField(_("a short description"))
+    description = models.TextField(_("a short description"), null=True)
 
     adress = models.CharField(_("adress"), max_length=500, null=True)
 

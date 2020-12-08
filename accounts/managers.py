@@ -4,9 +4,11 @@ from django.db.models import Manager
 from django.conf import settings
 
 class CustomUserManager(BaseUserManager):
-    def create_user(self, email, password, **extra_fields):
+    def create_user(self, email, password, is_association_owner, **extra_fields):
         if not email:
             raise (ValueError(_("The email must be set")))
+        if is_association_owner: 
+            
         email = self.normalize_email(email)
         user = self.model(email=email, **extra_fields)
         user.set_password(password)

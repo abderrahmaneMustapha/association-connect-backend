@@ -38,12 +38,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'corsheaders',
-    'graphene_django',      
+    'graphene_django',
+    'accounts',      
     "graphql_auth",  
     'django_filters',
     # refresh tokens are optional
     'graphql_jwt.refresh_token.apps.RefreshTokenConfig',
-    'accounts'
+    
 ]
 
 MIDDLEWARE = [
@@ -59,7 +60,9 @@ MIDDLEWARE = [
 
 
 
+WSGI_APPLICATION = 'backend.wsgi.application'
 ROOT_URLCONF = 'backend.urls'
+
 
 TEMPLATES = [
     {
@@ -77,7 +80,12 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'backend.wsgi.application'
+GRAPHENE = {
+    'SCHEMA': 'backend.schema.schema', 
+    'MIDDLEWARE': [
+        'graphql_jwt.middleware.JSONWebTokenMiddleware',
+    ],
+}
 
 AUTHENTICATION_BACKENDS = [
     "graphql_auth.backends.GraphQLAuthBackend",
@@ -90,7 +98,7 @@ GRAPHQL_JWT = {
     'JWT_EXPIRATION_DELTA': timedelta(days=30),
     'JWT_REFRESH_EXPIRATION_DELTA': timedelta(days=100),
     "JWT_ALLOW_ANY_CLASSES": [
-         "graphql_auth.mutations.Register",
+        "graphql_auth.mutations.Register",
         "graphql_auth.mutations.VerifyAccount",
         "graphql_auth.mutations.ResendActivationEmail",
         "graphql_auth.mutations.SendPasswordResetEmail",
@@ -100,17 +108,11 @@ GRAPHQL_JWT = {
         "graphql_auth.mutations.RefreshToken",
         "graphql_auth.mutations.RevokeToken",
         "graphql_auth.mutations.VerifySecondaryEmail",
-      
     ],
  
 }
 #auth 
-GRAPHENE = {
-    'SCHEMA': 'backend.schema.schema', # this file doesn't exist yet
-    'MIDDLEWARE': [
-        'graphql_jwt.middleware.JSONWebTokenMiddleware',
-    ],
-}
+
 
 
 GRAPHQL_AUTH = {
@@ -148,7 +150,7 @@ DATABASES = {
 }
 
 
-
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
