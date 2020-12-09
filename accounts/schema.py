@@ -142,6 +142,21 @@ class AssociationGroupCreationMutation(graphene.Mutation):
 
     def mutate(root, info, name, association, group_type):
         _group = AssociationGroup.objects.create(name=name, association=association, group_type=group_type)
+
+        return AssociationGroupCreationMutation(group=_group, success=success)
+
+class AssociationGroupDeleteMutation(graphene.Mutation):
+    class Arguments:
+        name = graphene.String()
+        association = graphene.ID()
+
+    success =  graphene.Boolean()
+    group  = graphene.Field(AssociationGroupType)
+
+    def mutate(root, info, name, association):
+        _group = AssociationGroup.objects.delete(name=name, association=association)
+
+        return AssociationGroupCreationMutation(group=_group, success=success)
 class AssociationGroupMemberAddMutation(graphene.Mutation):
     class Arguments:
         memeber = graphene.ID()
@@ -161,8 +176,11 @@ class AccountsMutation(graphene.ObjectType):
     add_member =  MemberAddMutation.Field()
     delete_member = MemberDeleteMutation.Field()
     archive_member = MemberArchiveMutation.Field()
+
     create_association = AssciationCreationMutation.Field()
     update_association_description = AssociationUpdateDescriptionMutation.Field()
+
     create_group = AssociationGroupCreationMutation.Field()
+
     add_members_group = AssociationGroupMemberAddMutation.Field()
-    
+
