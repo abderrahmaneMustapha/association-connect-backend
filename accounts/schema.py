@@ -119,7 +119,17 @@ class AssciationCreationMutation(graphene.Mutation):
         return AssciationCreationMutation(association=association,
                                           success=success)
 
+class AssciationDeleteMutation(graphene.Mutation):
+    class Arguments:
+        id = graphene.ID()
+    
+    success = graphene.Boolean()
+    association = graphene.Field(AssociationType)
 
+    def mutate(root, info, id):
+        association = Association.objects.get(pk=id)
+        success = True
+        return AssciationDeleteMutation(association=association, success=success)
 class AssociationUpdateDescriptionMutation(graphene.Mutation):
     class Arguments:
         description = graphene.String()
@@ -179,8 +189,10 @@ class AccountsMutation(graphene.ObjectType):
 
     create_association = AssciationCreationMutation.Field()
     update_association_description = AssociationUpdateDescriptionMutation.Field()
+    delete_assciation = AssciationDeleteMutation.Field()
 
     create_group = AssociationGroupCreationMutation.Field()
+    delete_group = AssociationGroupDeleteMutation.Field()
 
     add_members_group = AssociationGroupMemberAddMutation.Field()
 
