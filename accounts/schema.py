@@ -52,35 +52,35 @@ class MemberAddMutation(graphene.Mutation):
 
 class MemberDeleteMutation(graphene.Mutation):
     class Arguments:
-
+        user = graphene.ID()
         association = graphene.ID()
 
     success = graphene.Boolean()
     member = graphene.Field(MemberType)
 
-    def mutate(root, info, association):
+    def mutate(root, info, association, user ):
 
         association = Association.objects.get(pk=association)
 
         member = Member.objects.delete(association__id=association,
-                                       user=info.context.user)
+                                       user=user)
         success = True
         return MemberDeleteMutation(member=member, success=success)
 
 class MemberArchiveMutation(graphene.Mutation):
     class Arguments:
-
+        user = graphene.ID()
         association = graphene.ID()
 
     success = graphene.Boolean()
     member = graphene.Field(MemberType)
 
-    def mutate(root, info, association):
+    def mutate(root, info, association, user):
 
         association = Association.objects.get(pk=association)
 
         member = Member.objects.get(association__id=association,
-                                       user=info.context.user)
+                                       user=user)
         member.is_archived = True
         member.save()
         success = True
@@ -155,3 +155,14 @@ class AssociationGroupMemberAddMutation(graphene.Mutation):
         success = True
         return AssociationGroupMemberAddMutation(member=member, success=success)
 # end mutations
+
+
+class AccountsMutation(graphene.ObjectType):
+    add_member =  MemberAddMutation.Field()
+    delete_member = MemberDeleteMutation.Field()
+    archive_member = MemberArchiveMutation.Field()
+    create_association = AssciationCreationMutation.Field()
+    update_association_description = AssociationUpdateDescriptionMutation.Field()
+    create_group = AssociationGroupCreationMutation.Field()
+    add_members_group = AssociationGroupMemberAddMutation.Field()
+    

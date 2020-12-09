@@ -3,7 +3,7 @@ import graphene
 from graphql_auth.schema import UserQuery, MeQuery
 
 from graphql_auth import mutations
-
+from accounts.schema  import AccountsMutation
 class AuthMutation(graphene.ObjectType):
     register = mutations.Register.Field()
     verify_account = mutations.VerifyAccount.Field()
@@ -29,7 +29,7 @@ class Query(UserQuery, MeQuery, graphene.ObjectType):
     pass
 
 
-class Mutation(AuthMutation, graphene.ObjectType):
+class Mutation(AuthMutation,AccountsMutation, graphene.ObjectType):
    pass
 
 schema = graphene.Schema(query=Query, mutation=Mutation)
