@@ -19,6 +19,7 @@ class BaseUser(AbstractUser):
 
     key = models.UUIDField(primary_key=True, default=uuid.uuid4)
 
+    username = models.CharField(_("user name"), max_length=120,  null=True, blank=True)
     first_name = models.CharField(_("first name"), max_length=150, null=True)
 
     last_name = models.CharField(_("last name"), max_length=150, null=True)
