@@ -44,7 +44,7 @@ class BaseUser(AbstractUser):
                                null=True)
 
     is_association_owner = models.BooleanField(
-        _("This user is an association owner"), default=False)
+        _("This user is an association owner"), default=False, null=True)
 
     profile_pic = models.ImageField(
         _('profile pic'),

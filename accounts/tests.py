@@ -11,23 +11,22 @@ from django.test import RequestFactory
 class MyFancyTestCase(GraphQLTestCase):
 
     
-    association_type = AssociationType.objects.create(
+    association_type = AssociationType.objects.get_or_create(
         name="sport", description="a sport activitys")
 
-    association_min_max_numbers = ExpectedAssociationMembersNumber.objects.create(
+    association_min_max_numbers = ExpectedAssociationMembersNumber.objects.get_or_create(
         max_number=30, min_number=2000)
 
-    association = Association.objects.create(
+    association = Association.objects.get_or_create(
         name="dz algeria",
         description="we are dz algeria a perefect organizatoin",
         association_min_max_numbers=association_min_max_numbers,
         association_type=association_type)
 
-    user = BaseUser.objects.create_user(
+    user = BaseUser.objects.get(
         first_name="toumi",
         last_name="abderrahmane",
-        email="abderrahmanemustapha@mail.com",
-        password="azeaz223éé",
+        email="abderrahmanemustapa@mail.com",
         is_association_owner=False)
 
     req = RequestFactory().get('/')
