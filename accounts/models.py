@@ -83,7 +83,7 @@ class ExpectedAssociationMembersNumber(models.Model):
 class Association(models.Model):
     name = models.CharField(_('name of the association'), max_length=225)
     description = models.TextField(_('description of the association'),
-                                   max_length=1500)
+                                   max_length=1500, null=True, blank=True)
     association_type = models.ForeignKey(
         AssociationType,
         verbose_name=_('the association type'),

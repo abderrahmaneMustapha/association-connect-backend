@@ -50,6 +50,25 @@ class MemberAddMutation(graphene.Mutation):
         success = True
         return MemberAddMutation(member=member, success=success)
 
+
+class MemberAddByAdminMutation(graphene.Mutation):
+    class Arguments:
+
+        association = graphene.ID()
+        user = graphene.ID()
+
+    success = graphene.Boolean()
+    member = graphene.Field(MemberType)
+
+    def mutate(root, info, association, user):
+
+        association = Association.objects.get(pk=association)
+
+        member = Member.objects.create(association=association,
+                                       user=user)
+        success = True
+
+        return MemberAddMutation(member=member, success=success)
 class MemberDeleteMutation(graphene.Mutation):
     class Arguments:
         user = graphene.ID()
@@ -184,6 +203,7 @@ class AssociationGroupMemberAddMutation(graphene.Mutation):
 
 class AccountsMutation(graphene.ObjectType):
     add_member =  MemberAddMutation.Field()
+    add_memeber_by_admin = MemberAddByAdminMutation.Field()
     delete_member = MemberDeleteMutation.Field()
     archive_member = MemberArchiveMutation.Field()
 

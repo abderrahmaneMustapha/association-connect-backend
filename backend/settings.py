@@ -15,7 +15,6 @@ from datetime import timedelta
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
@@ -26,7 +25,6 @@ SECRET_KEY = 'oiazbs59my@xn^v@ha1qv%z3g2-6!qx%r%j#f#xf=4g*7*4qit'
 DEBUG = True
 
 ALLOWED_HOSTS = []
-
 
 # Application definition
 
@@ -39,12 +37,11 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'corsheaders',
     'graphene_django',
-    'accounts',      
-    "graphql_auth",  
+    'accounts',
+    "graphql_auth",
     'django_filters',
     # refresh tokens are optional
     'graphql_jwt.refresh_token.apps.RefreshTokenConfig',
-    
 ]
 
 MIDDLEWARE = [
@@ -58,11 +55,8 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-
-
 WSGI_APPLICATION = 'backend.wsgi.application'
 ROOT_URLCONF = 'backend.urls'
-
 
 TEMPLATES = [
     {
@@ -80,8 +74,9 @@ TEMPLATES = [
     },
 ]
 
+
 GRAPHENE = {
-    'SCHEMA': 'backend.schema.schema', 
+    'SCHEMA': 'backend.schema.schema',
     'MIDDLEWARE': [
         'graphql_jwt.middleware.JSONWebTokenMiddleware',
     ],
@@ -89,14 +84,18 @@ GRAPHENE = {
 
 AUTHENTICATION_BACKENDS = [
     "graphql_auth.backends.GraphQLAuthBackend",
-    'django.contrib.auth.backends.ModelBackend',    
+    'django.contrib.auth.backends.ModelBackend',
 ]
 
 GRAPHQL_JWT = {
-    "JWT_VERIFY_EXPIRATION": True,
-    "JWT_LONG_RUNNING_REFRESH_TOKEN": True,
-    'JWT_EXPIRATION_DELTA': timedelta(days=30),
-    'JWT_REFRESH_EXPIRATION_DELTA': timedelta(days=100),
+    "JWT_VERIFY_EXPIRATION":
+    True,
+    "JWT_LONG_RUNNING_REFRESH_TOKEN":
+    True,
+    'JWT_EXPIRATION_DELTA':
+    timedelta(days=30),
+    'JWT_REFRESH_EXPIRATION_DELTA':
+    timedelta(days=100),
     "JWT_ALLOW_ANY_CLASSES": [
         "graphql_auth.mutations.Register",
         "graphql_auth.mutations.VerifyAccount",
@@ -109,17 +108,14 @@ GRAPHQL_JWT = {
         "graphql_auth.mutations.RevokeToken",
         "graphql_auth.mutations.VerifySecondaryEmail",
     ],
- 
 }
-#auth 
-
-
+#auth
 
 GRAPHQL_AUTH = {
-       'REGISTER_MUTATION_FIELDS' : {
+    'REGISTER_MUTATION_FIELDS': {
         "email": "String",
-        "first_name" : "String",
-        "last_name":  "String",
+        "first_name": "String",
+        "last_name": "String",
         "password1": "String",
         "password2": "String",
     }
@@ -129,7 +125,6 @@ CORS_ORIGIN_WHITELIST = [
     #React App domain
     "http://localhost:3000",
     "http://127.0.0.1:3000"
-    
 ]
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
@@ -149,7 +144,6 @@ DATABASES = {
     },
 }
 
-
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # Password validation
@@ -157,21 +151,24 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        'NAME':
+        'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'NAME':
+        'django.contrib.auth.password_validation.MinimumLengthValidator',
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+        'NAME':
+        'django.contrib.auth.password_validation.CommonPasswordValidator',
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        'NAME':
+        'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
 
 AUTH_USER_MODEL = 'accounts.BaseUser'
-
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.1/topics/i18n/
@@ -185,7 +182,6 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
