@@ -41,6 +41,16 @@ class MyFancyTestCase(TestCase):
         cls.delete_member = Member.objects.create(
             user=cls.delete_user,
             association=cls.association)
+        
+        cls.archive_user= BaseUser.objects.create(
+            first_name="toumiarchive_",
+            last_name="abderrahmanearchive_",
+            email="abderrahmanemustapaarchive_@mail.com",
+            is_association_owner=False)
+        
+        cls.archive_member = Member.objects.create(
+            user=cls.archive_user,
+            association=cls.association)
 
         cls.req = RequestFactory().get('/')
         cls.req.user = cls.user
@@ -75,3 +85,18 @@ class MyFancyTestCase(TestCase):
      
         assert  'errors' not in response
         assert member_deleted == False
+    
+    def test_archive_member(self):
+        client = Client(schema, context_value=self.req)  
+
+        query = "mutation{archiveMember(association: %s , user:\"%s\"){success}}" %(self.association.id, self.archive_user.key)
+        response = client.execute(query)
+
+        member_archived = Member.objects.get(
+            user=self.archive_user,
+            association=self.association)
+        
+        assert  'errors' not in response
+        assert member_archived.is_archived == True
+
+        

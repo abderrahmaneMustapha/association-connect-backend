@@ -93,10 +93,9 @@ class MemberArchiveMutation(graphene.Mutation):
 
     def mutate(root, info, association, user):
 
-        association = Association.objects.get(pk=association)
 
-        member = Member.objects.get(association__id=association,
-                                       user=user)
+        member = Member.objects.get(association__pk=association,
+                                       user__key=user)
         member.is_archived = True
         member.save()
         success = True
