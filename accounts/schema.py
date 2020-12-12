@@ -232,6 +232,22 @@ class AssociationGroupMemberAddMutation(graphene.Mutation):
                                                  success=success)
 
 
+class AssociationGroupMemberRemoveMutation(graphene.Mutation):
+    class Arguments:
+        member = graphene.ID()
+        group = graphene.ID()
+
+    success = graphene.Boolean()
+    member = graphene.Field(AssociationGroupMemberType)
+
+    def mutate(root, info, member, group):
+        group_member = AssociationGroupMember.objects.filter(member=member, group=group)
+        group_member.delete()
+        success = True
+        return AssociationGroupMemberRemoveMutation(member=group_member.first(),
+                                                 success=success)
+
+
 # end mutations
 
 
@@ -248,4 +264,5 @@ class AccountsMutation(graphene.ObjectType):
     create_group = AssociationGroupCreationMutation.Field()
     delete_group = AssociationGroupDeleteMutation.Field()
 
-    add_members_group = AssociationGroupMemberAddMutation.Field()
+    add_member_group = AssociationGroupMemberAddMutation.Field()
+    remove_member_group = AssociationGroupMemberRemoveMutation.Field()

@@ -6,7 +6,7 @@ from graphene.test import Client
 from backend.schema import schema
 from .models import (Association, AssociationType,
                      ExpectedAssociationMembersNumber, BaseUser, Member,
-                     AssociationGroup, AssociationGroupMember)
+                     AssociationGroup, AssociationGroupMember, AssociationGroupMember)
 
 from django.test import RequestFactory
 
@@ -221,7 +221,7 @@ class AccountsMutationsTestCase(TestCase):
 
         query="""
         mutation {
-            addMembersGroup(member:%s, group:%s){
+            addMemberGroup(member:%s, group:%s){
                 success
                 member{member{id}}
             }
@@ -231,19 +231,30 @@ class AccountsMutationsTestCase(TestCase):
         response = client.execute(query)
         assert 'errors' not in response
 
+        group_exists = AssociationGroupMember.object.filter(member=self.delete_member.id, id=self.group.id).exists()
+        assert group_exists == True
+
+
+    
     def test_association_remove_member_group(self):
         client = Client(schema, context_value=self.req)
 
         query="""
-        mutation {
-            addMembersGroup(member:%s, group:%s){
-                success
-                member{member{id}}
+            mutation {
+                removeMemberGroup(member:%s, group:%s){
+                    success
+                    member{member{id}}
+                }
             }
-        }
         """%(self.delete_member.id, self.group.id)
         
         response = client.execute(query)
+      
         assert 'errors' not in response
 
-        
+        group_exists = AssociationGroupMember.object.filter(member=self.delete_member.id, id=self.group.id).exists()
+        assert group_exists == False
+
+
+
+
