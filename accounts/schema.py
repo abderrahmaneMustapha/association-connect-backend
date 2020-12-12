@@ -7,7 +7,7 @@ import graphene
 class MemberType(DjangoObjectType):
     class Meta:
         model = Member
-        fields = ['association']
+        fields = ['association', 'user', 'is_owner']
 
 
 class AssociationType(DjangoObjectType):
@@ -42,8 +42,6 @@ class MemberAddMutation(graphene.Mutation):
     member = graphene.Field(MemberType)
 
     def mutate(root, info, association):
-        print("association id ", association)
-        print( "association object ", Association.objects.all())
         association = Association.objects.get(id=association)
 
         member = Member.objects.create(association=association,
@@ -72,24 +70,22 @@ class MemberAddByAdminMutation(graphene.Mutation):
         return MemberAddMutation(member=member, success=success)
 class MemberDeleteMutation(graphene.Mutation):
     class Arguments:
-        user = graphene.ID()
+        user = graphene.String()
         association = graphene.ID()
 
     success = graphene.Boolean()
     member = graphene.Field(MemberType)
 
-    def mutate(root, info, association, user ):
+    def mutate(root, info, association, user ):      
 
-        association = Association.objects.get(pk=association)
-
-        member = Member.objects.delete(association__id=association,
-                                       user=user)
+        member = Member.objects.filter(association__pk=association,
+                                       user__key=user).delete()
         success = True
         return MemberDeleteMutation(member=member, success=success)
 
 class MemberArchiveMutation(graphene.Mutation):
     class Arguments:
-        user = graphene.ID()
+        user = graphene.String()
         association = graphene.ID()
 
     success = graphene.Boolean()

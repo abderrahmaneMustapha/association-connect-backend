@@ -4,7 +4,7 @@ from django.test import TestCase
 from graphene.test import Client
 
 from backend.schema import schema
-from .models import Association, AssociationType, ExpectedAssociationMembersNumber, BaseUser
+from .models import Association, AssociationType, ExpectedAssociationMembersNumber, BaseUser, Member
 
 from django.test import RequestFactory
 
@@ -31,6 +31,16 @@ class MyFancyTestCase(TestCase):
             last_name="abderrahmane",
             email="abderrahmanemustapa@mail.com",
             is_association_owner=False)
+        
+        cls.delete_user = BaseUser.objects.create(
+            first_name="toumidelete_",
+            last_name="abderrahmanedelete_",
+            email="abderrahmanemustapadelete_@mail.com",
+            is_association_owner=False)
+
+        cls.delete_member = Member.objects.create(
+            user=cls.delete_user,
+            association=cls.association)
 
         cls.req = RequestFactory().get('/')
         cls.req.user = cls.user
@@ -53,4 +63,15 @@ class MyFancyTestCase(TestCase):
 
         assert  'errors' not in response
     
-    def 
+    def test_delete_member(self):
+        client = Client(schema, context_value=self.req)  
+
+        query = "mutation{deleteMember(association:%s , user:\"%s\"){success}}" %(self.association.id, self.delete_user.key)
+        response = client.execute(query)
+        
+        member_deleted = Member.objects.filter(
+            user=self.delete_user,
+            association=self.association).exists()
+     
+        assert  'errors' not in response
+        assert member_deleted == False
