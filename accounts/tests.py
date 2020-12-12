@@ -231,7 +231,7 @@ class AccountsMutationsTestCase(TestCase):
         response = client.execute(query)
         assert 'errors' not in response
 
-        group_exists = AssociationGroupMember.object.filter(member=self.delete_member.id, id=self.group.id).exists()
+        group_exists = AssociationGroupMember.objects.filter(member=self.delete_member.id, id=self.group.id).exists()
         assert group_exists == True
 
 
@@ -252,7 +252,7 @@ class AccountsMutationsTestCase(TestCase):
       
         assert 'errors' not in response
 
-        group_exists = AssociationGroupMember.object.filter(member=self.delete_member.id, id=self.group.id).exists()
+        group_exists = AssociationGroupMember.objects.filter(member=self.delete_member.id, id=self.group.id).exists()
         assert group_exists == False
 
 
