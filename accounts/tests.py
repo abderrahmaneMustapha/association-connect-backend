@@ -157,3 +157,6 @@ class MyFancyTestCase(TestCase):
 
         response = client.execute(query)
         assert 'errors' not in response
+
+        association_description = Association.objects.get(id=self.association.id).description
+        assert  new_association_description == association_description

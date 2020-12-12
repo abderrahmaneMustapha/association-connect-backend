@@ -171,10 +171,11 @@ class AssociationUpdateDescriptionMutation(graphene.Mutation):
     association = graphene.Field(AssociationType)
 
     def mutate(root, info, association, description):
-        association = Association.objects.filter(id=association)
-        association.update(description=description)
+        association = Association.objects.get(id=association)
+        association.description=description
+        association.save()
         success = True
-        return AssociationCreationMutation( association=association.first(),
+        return AssociationCreationMutation(association=association,
                                            success=success)
 
 
