@@ -42,8 +42,9 @@ class MemberAddMutation(graphene.Mutation):
     member = graphene.Field(MemberType)
 
     def mutate(root, info, association):
-
-        association = Association.objects.get(pk=association)
+        print("association id ", association)
+        print( "association object ", Association.objects.all())
+        association = Association.objects.get(id=association)
 
         member = Member.objects.create(association=association,
                                        user=info.context.user)
@@ -55,17 +56,17 @@ class MemberAddByAdminMutation(graphene.Mutation):
     class Arguments:
 
         association = graphene.ID()
-        user = graphene.ID()
+        user = graphene.String()
 
     success = graphene.Boolean()
     member = graphene.Field(MemberType)
 
     def mutate(root, info, association, user):
 
-        association = Association.objects.get(pk=association)
-
+        association = Association.objects.get(id=association)
+        user_ = BaseUser.objects.get(key=user)
         member = Member.objects.create(association=association,
-                                       user=user)
+                                       user=user_)
         success = True
 
         return MemberAddMutation(member=member, success=success)

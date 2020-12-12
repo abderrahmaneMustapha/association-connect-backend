@@ -1,3 +1,10 @@
 from django.contrib import admin
+from .models import *
 
-# Register your models here.
+
+@admin.register(Association, BaseUser, AssociationType,
+                ExpectedAssociationMembersNumber, Member, AssociationGroup,
+                AssociationGroupMember)
+                
+class AssociationAdmin(admin.ModelAdmin):
+    pass

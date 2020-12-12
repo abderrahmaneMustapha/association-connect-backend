@@ -74,7 +74,6 @@ TEMPLATES = [
     },
 ]
 
-
 GRAPHENE = {
     'SCHEMA': 'backend.schema.schema',
     'MIDDLEWARE': [
@@ -138,6 +137,20 @@ DATABASES = {
         'PASSWORD': '',
         'HOST': '',
         'PORT': '',
+        'TEST': {
+            'DEPENDENCIES': ['test_'],
+        },
+    },
+    'test_': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'associationdb_test',
+        'USER': 'postgres',
+        'PASSWORD': '',
+        'HOST': '',
+        'PORT': '',
+        'TEST': {
+            'DEPENDENCIES': [],
+        },
     },
     'OPTIONS': {
         'isolation_level': psycopg2.extensions.ISOLATION_LEVEL_SERIALIZABLE,

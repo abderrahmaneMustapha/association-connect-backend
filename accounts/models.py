@@ -59,7 +59,7 @@ class BaseUser(AbstractUser):
     REQUIRED_FIELDS = []
 
     objects = CustomUserManager()
-
+ 
     class Meta:
         verbose_name = "User"
         verbose_name_plural = "Users"
