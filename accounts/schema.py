@@ -199,17 +199,19 @@ class AssociationGroupCreationMutation(graphene.Mutation):
 
 class AssociationGroupDeleteMutation(graphene.Mutation):
     class Arguments:
-        name = graphene.String()
+        group = graphene.ID()
         association = graphene.ID()
 
     success = graphene.Boolean()
     group = graphene.Field(AssociationGroupType)
 
-    def mutate(root, info, name, association):
-        _group = AssociationGroup.objects.delete(name=name,
+    def mutate(root, info, group, association):
+        association = Association.objects.get(id=association)
+        _group = AssociationGroup.objects.filter(id=group,
                                                  association=association)
-
-        return AssociationGroupCreationMutation(group=_group, success=success)
+        _group.delete()
+        success=  True
+        return AssociationGroupCreationMutation(group=_group.first(), success=success)
 
 
 class AssociationGroupMemberAddMutation(graphene.Mutation):
@@ -221,8 +223,10 @@ class AssociationGroupMemberAddMutation(graphene.Mutation):
     member = graphene.Field(AssociationGroupMemberType)
 
     def mutate(root, info, member, group):
-        member = AssociationGroupMember.objects.create(member__id=member,
-                                                       group__id=group)
+        _memeber= Member.objects.get(key=member)
+        _group  = AssociationGroup.objects.get(id=group)
+        member = AssociationGroupMember.objects.create(member=member,
+                                                       group=_group)
         success = True
         return AssociationGroupMemberAddMutation(member=member,
                                                  success=success)

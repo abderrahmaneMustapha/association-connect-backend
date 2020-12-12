@@ -4,12 +4,14 @@ from django.test import TestCase
 from graphene.test import Client
 
 from backend.schema import schema
-from .models import Association, AssociationType, ExpectedAssociationMembersNumber, BaseUser, Member
+from .models import (Association, AssociationType,
+                     ExpectedAssociationMembersNumber, BaseUser, Member,
+                     AssociationGroup, AssociationGroupMember)
 
 from django.test import RequestFactory
 
 
-class MyFancyTestCase(TestCase):
+class AccountsMutationsTestCase(TestCase):
     databases = {"test_", "default"}
 
     @classmethod
@@ -26,6 +28,10 @@ class MyFancyTestCase(TestCase):
             description="we are dz algeria a perefect organizatoin",
             association_min_max_numbers=cls.association_min_max_numbers,
             association_type=cls.association_type)
+
+        cls.group = AssociationGroup.objects.create(name="Leader",
+                                                   association=cls.association,
+                                                   group_type="S")
 
         cls.user = BaseUser.objects.create(
             first_name="toumi",
@@ -135,9 +141,10 @@ class MyFancyTestCase(TestCase):
 
         response = client.execute(query)
         assert 'errors' not in response
-        
-        association_exists= Association.objects.filter(id=self.association.id).exists()
-        assert  association_exists == False
+
+        association_exists = Association.objects.filter(
+            id=self.association.id).exists()
+        assert association_exists == False
 
     def test_update_association_description(self):
         client = Client(schema, context_value=self.req)
@@ -158,12 +165,13 @@ class MyFancyTestCase(TestCase):
         response = client.execute(query)
         assert 'errors' not in response
 
-        association_description = Association.objects.get(id=self.association.id).description
-        assert  new_association_description == association_description
+        association_description = Association.objects.get(
+            id=self.association.id).description
+        assert new_association_description == association_description
 
     def test_association_group_creation(self):
         client = Client(schema, context_value=self.req)
-       
+
         query = """
             mutation {
                 createGroup(association:%s, groupType:"S", name:\"%s\"){
@@ -177,7 +185,6 @@ class MyFancyTestCase(TestCase):
         response = client.execute(query)
         assert 'errors' not in response
 
-
         query = """
             mutation {
                 createGroup(association:%s, groupType:"D", name:\"%s\"){
@@ -190,3 +197,23 @@ class MyFancyTestCase(TestCase):
 
         response = client.execute(query)
         assert 'errors' not in response
+
+    def test_association_group_delete(self):
+        client = Client(schema, context_value=self.req)
+
+        query = """
+            mutation {
+                deleteGroup(association:%s, group:%s){
+                    success,
+                    group{id, name,association{id}}
+                }
+            }
+        """ % (self.association.id, self.group.id)
+
+        response = client.execute(query)
+        assert 'errors' not in response
+
+        group_exist  = AssociationGroup.objects.filter(id=self.group.id).exists()
+        assert  group_exist == False
+    
+    
