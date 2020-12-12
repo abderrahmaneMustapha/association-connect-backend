@@ -189,10 +189,11 @@ class AssociationGroupCreationMutation(graphene.Mutation):
     group = graphene.Field(AssociationGroupType)
 
     def mutate(root, info, name, association, group_type):
+        association = Association.objects.get(id=association)
         _group = AssociationGroup.objects.create(name=name,
                                                  association=association,
                                                  group_type=group_type)
-
+        success=True
         return AssociationGroupCreationMutation(group=_group, success=success)
 
 

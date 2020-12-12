@@ -160,3 +160,33 @@ class MyFancyTestCase(TestCase):
 
         association_description = Association.objects.get(id=self.association.id).description
         assert  new_association_description == association_description
+
+    def test_association_group_creation(self):
+        client = Client(schema, context_value=self.req)
+       
+        query = """
+            mutation {
+                createGroup(association:%s, groupType:"S", name:\"%s\"){
+                    success,
+                    group{id, name, association{id}, groupType}
+                }
+            }
+
+        """ % (self.association.id, "Amateur")
+
+        response = client.execute(query)
+        assert 'errors' not in response
+
+
+        query = """
+            mutation {
+                createGroup(association:%s, groupType:"D", name:\"%s\"){
+                    success,
+                    group{id, name, association{id}, groupType}
+                }
+            }
+
+        """ % (self.association.id, "Seniors")
+
+        response = client.execute(query)
+        assert 'errors' not in response
