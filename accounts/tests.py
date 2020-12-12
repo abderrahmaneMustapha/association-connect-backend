@@ -208,7 +208,7 @@ class AccountsMutationsTestCase(TestCase):
                     group{id, name,association{id}}
                 }
             }
-        """ % (self.association.id, self.group.id)
+        """ %(self.association.id, self.group.id)
 
         response = client.execute(query)
         assert 'errors' not in response
@@ -216,4 +216,34 @@ class AccountsMutationsTestCase(TestCase):
         group_exist  = AssociationGroup.objects.filter(id=self.group.id).exists()
         assert  group_exist == False
     
-    
+    def test_association_add_member_group(self):
+        client = Client(schema, context_value=self.req)
+
+        query="""
+        mutation {
+            addMembersGroup(member:%s, group:%s){
+                success
+                member{member{id}}
+            }
+        }
+        """%(self.delete_member.id, self.group.id)
+        
+        response = client.execute(query)
+        assert 'errors' not in response
+
+    def test_association_remove_member_group(self):
+        client = Client(schema, context_value=self.req)
+
+        query="""
+        mutation {
+            addMembersGroup(member:%s, group:%s){
+                success
+                member{member{id}}
+            }
+        }
+        """%(self.delete_member.id, self.group.id)
+        
+        response = client.execute(query)
+        assert 'errors' not in response
+
+        

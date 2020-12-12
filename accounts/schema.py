@@ -9,7 +9,7 @@ import graphene
 class MemberType(DjangoObjectType):
     class Meta:
         model = Member
-        fields = ['association', 'user', 'is_owner']
+        fields = ['id','association', 'user', 'is_owner']
 
 
 class AssociationType(DjangoObjectType):
@@ -216,16 +216,16 @@ class AssociationGroupDeleteMutation(graphene.Mutation):
 
 class AssociationGroupMemberAddMutation(graphene.Mutation):
     class Arguments:
-        memeber = graphene.ID()
+        member = graphene.ID()
         group = graphene.ID()
 
     success = graphene.Boolean()
     member = graphene.Field(AssociationGroupMemberType)
 
     def mutate(root, info, member, group):
-        _memeber= Member.objects.get(key=member)
+        _member= Member.objects.get(id=member)
         _group  = AssociationGroup.objects.get(id=group)
-        member = AssociationGroupMember.objects.create(member=member,
+        member = AssociationGroupMember.objects.create(member=_member,
                                                        group=_group)
         success = True
         return AssociationGroupMemberAddMutation(member=member,
