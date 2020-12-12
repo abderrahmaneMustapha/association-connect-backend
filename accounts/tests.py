@@ -107,15 +107,16 @@ class MyFancyTestCase(TestCase):
                     {
                             success,association{id,name}
                     }
-                }""" %( self.association_min_max_numbers.id, self.association_type.id)
+                }""" % (self.association_min_max_numbers.id,
+                        self.association_type.id)
 
         response = client.execute(query)
         assert 'errors' not in response
-    
-        member_exists =  Member.objects.filter(user=self.user).exists()
+
+        member_exists = Member.objects.filter(user=self.user).exists()
         assert member_exists == True
 
-        member = Member.objects.get(user=self.user)        
+        member = Member.objects.get(user=self.user)
         assert member.is_owner
 
         assert member.user.is_association_owner
@@ -130,15 +131,18 @@ class MyFancyTestCase(TestCase):
                     association{id,name,description}
                 }
             }
-        """%(self.association.id)
+        """ % (self.association.id)
 
         response = client.execute(query)
         assert 'errors' not in response
-    
+        
+        association_exists= Association.objects.filter(id=self.association.id).exists()
+        assert  association_exists == False
+
     def test_update_association_description(self):
         client = Client(schema, context_value=self.req)
-        new_association_description =  "new updated description"
-        query= """
+        new_association_description = "new updated description"
+        query = """
         mutation {
             updateAssociationDescription(association: %s , description: \"%s\") {
                 success
@@ -149,7 +153,7 @@ class MyFancyTestCase(TestCase):
                 }
             }
         }
-        """%(self.association.id, new_association_description)
+        """ % (self.association.id, new_association_description)
 
         response = client.execute(query)
         assert 'errors' not in response
