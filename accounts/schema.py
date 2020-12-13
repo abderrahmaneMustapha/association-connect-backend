@@ -4,8 +4,15 @@ from .models import (BaseUser, Member, Association, AssociationGroup,
                      ExpectedAssociationMembersNumber)
 import graphene
 
+from django.contrib.auth.models import Permission
+from django.contrib.contenttypes.models import ContentType
 
 #types
+class ModelsContentType(DjangoObjectType):
+    class Meta:
+        model = ContentType
+        fields = '__all__'
+
 class MemberType(DjangoObjectType):
     class Meta:
         model = Member
@@ -266,4 +273,13 @@ class AccountsMutation(graphene.ObjectType):
 
     add_member_group = AssociationGroupMemberAddMutation.Field()
     remove_member_group = AssociationGroupMemberRemoveMutation.Field()
+
+
+class AccountsQuery(graphene.ObjectType):
+    get_all_association_object_permissions = graphene.List(ModelsContentType)
+
+    def resolve_get_all_association_object_permissions(root, info):
+        content_type = ContentType.objects.get_for_model(Association)
+        return Permission.objects.filter(content_type=content_type)
+
 
