@@ -102,6 +102,9 @@ class Association(models.Model):
         permissions = (
             ('update_association_info', 'Update association Info'),
             ('view_association_dashboard', 'View association dashboard')
+            ('add_association_member', 'Add an new association member'),
+            ('delete_association_member', 'Delete association member'),
+            ('view_association_member', 'View association member'),
         )
 
 
@@ -112,13 +115,6 @@ class Member (models.Model):
     is_archived = models.BooleanField(_('this user is not a member any more'), default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        permissions = (
-            ('add_association_member', 'Add an new association member'),
-            ('delete_association_member', 'Delete association member'),
-            ('view_association_member', 'View association member'),
-        )
 
 
 class AssociationGroup(models.Model):
@@ -138,6 +134,9 @@ class AssociationGroup(models.Model):
 
     class Meta:
         permissions = (
+                ('add_group_member', 'Add an new group member'),
+                ('delete_group_member', 'Delete group member'),
+                ('view_group_member_info', 'View group member info'),
                 ('update_group_info', 'Update group Info'),
                 ('view_group_dashboard', 'View group dashboard'),
                 ('delete_group', 'Delete group'),
@@ -150,9 +149,4 @@ class AssociationGroupMember(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    class Meta:
-        permissions = (
-                ('add_group_member', 'Add an new group member'),
-                ('delete_group_member', 'Delete group member'),
-                ('view_group_member_info', 'View group member info'),
-        )
+      
