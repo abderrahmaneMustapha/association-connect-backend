@@ -7,6 +7,7 @@ import graphene
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 
+from guardian.shortcuts import assign_perm
 
 #types
 class ModelsContentType(DjangoObjectType):
@@ -266,6 +267,39 @@ class AssociationGroupMemberRemoveMutation(graphene.Mutation):
         return AssociationGroupMemberRemoveMutation(
             member=group_member.first(), success=success)
 
+class OwnerGiveAssociationPermissionsToMembers(graphene.Mutation):
+    class Arguments:
+        permission = graphene.String()
+        association = graphene.ID()
+        member  = graphene.ID()
+
+    success = graphene.Boolean()
+    member = graphene.Field(MemberType)
+
+    def mutate(root, info, permission, association, member):
+        _association = Association.objects.get(id=association)
+        _member = Member.object.get(id=member)
+        assign_perm(permission, _member, _association )
+        success = True
+        return OwnerGiveAssociationPermissionsToMembers(member=_member, success=success)
+
+class OwnerGiveGroupPermissionsToMembers(graphene.Mutation):
+    class Arguments:
+        permission = graphene.String()
+        association = graphene.ID()
+        group = graphene.ID()
+        member  = graphene.ID()
+
+    success = graphene.Boolean()
+    member = graphene.Field(MemberType)
+
+    def mutate(root, info, permission, association, group,member):
+        _association = Association.objects.get(id=association)
+        _group = AssociationGroup.objects.get(id=group, association__id=association)
+        _member = Member.object.get(id=member)
+        assign_perm(permission, _member, _group )
+        success = True
+        return OwnerGiveAssociationPermissionsToMembers(member=_member, success=success)
 
 # end mutations
 
@@ -313,4 +347,4 @@ class AccountsQuery(graphene.ObjectType):
     def resolve_get_all_association_group_member__permissions(root, info):
         content_type = ContentType.objects.get_for_model(AssociationGroupMember)
         return Permission.objects.filter(content_type=content_type)
-
+ 
