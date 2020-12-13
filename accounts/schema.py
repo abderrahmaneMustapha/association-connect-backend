@@ -266,3 +266,4 @@ class AccountsMutation(graphene.ObjectType):
 
     add_member_group = AssociationGroupMemberAddMutation.Field()
     remove_member_group = AssociationGroupMemberRemoveMutation.Field()
+

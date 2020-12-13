@@ -98,8 +98,13 @@ class Association(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    class Meta:
-        pass
+    class Meta : 
+        permissions = (
+            ('add_association_member', 'Add an new association member'),
+            ('delete_association_member', 'Delete association member'),
+            ('update_association_info', 'Update association Info'),
+            ('view_association_dashboard', 'View association dashboard')
+        )
 
 
 class Member (models.Model):
@@ -109,6 +114,7 @@ class Member (models.Model):
     is_archived = models.BooleanField(_('this user is not a member any more'), default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
 class AssociationGroup(models.Model):
     STATIQUE = 'S'
     DYNAMIQUE = 'D'
@@ -124,8 +130,25 @@ class AssociationGroup(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        permissions = (
+                ('add_group_member', 'Add an new group member'),
+                ('delete_group_member', 'Delete group member'),
+                ('update_group_info', 'Update group Info'),
+                ('view_group_dashboard', 'View group dashboard'),
+                ('delete_group', 'Delete group'),
+                ('add_group', 'Add new group')
+        )
+
 class AssociationGroupMember(models.Model):
     member = models.ForeignKey(Member, verbose_name=_("member"), on_delete=models.CASCADE)
     group = models.ForeignKey(AssociationGroup, verbose_name=_("association group"), on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        permissions = (
+                ('add_group_member', 'Add an new group member'),
+                ('delete_group_member', 'Delete group member'),
+                ('view_group_member_info', 'View group member info'),
+        )
