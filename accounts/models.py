@@ -101,7 +101,7 @@ class Association(models.Model):
     class Meta : 
         permissions = (
             ('update_association_info', 'Update association Info'),
-            ('view_association_dashboard', 'View association dashboard')
+            ('view_association_dashboard', 'View association dashboard'),
             ('add_association_member', 'Add an new association member'),
             ('delete_association_member', 'Delete association member'),
             ('view_association_member', 'View association member'),
