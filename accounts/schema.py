@@ -280,8 +280,8 @@ class OwnerGiveAssociationPermissionsToMembers(graphene.Mutation):
 
     def mutate(root, info, permission, association, member):
         _association = Association.objects.get(id=association)
-        _member = Member.object.get(id=member)
-        assign_perm(permission, _member, _association)
+        _member = Member.objects.get(id=member)
+        assign_perm(permission,  _member.user, _association)
         success = True
         return OwnerGiveAssociationPermissionsToMembers(member=_member,
                                                         success=success)
@@ -298,8 +298,8 @@ class OwnerRemoveAssociationPermissionsToMembers(graphene.Mutation):
 
     def mutate(root, info, permission, association, member):
         _association = Association.objects.get(id=association)
-        _member = Member.object.get(id=member)
-        remove_perm(permission, _member, _association)
+        _member = Member.objects.get(id=member)
+        remove_perm(permission,  _member.user, _association)
         success = True
         return OwnerRemoveAssociationPermissionsToMembers(member=_member,
                                                           success=success)
@@ -319,8 +319,8 @@ class OwnerGiveGroupPermissionsToMembers(graphene.Mutation):
         _association = Association.objects.get(id=association)
         _group = AssociationGroup.objects.get(id=group,
                                               association__id=association)
-        _member = Member.object.get(id=member)
-        assign_perm(permission, _member, _group)
+        _member = Member.objects.get(id=member)
+        assign_perm(permission,  _member.user, _group)
         success = True
         return OwnerGiveGroupPermissionsToMembers(member=_member,
                                                   success=success)
@@ -341,7 +341,7 @@ class OwnerRemoveGroupPermissionsToMembers(graphene.Mutation):
         _group = AssociationGroup.objects.get(id=group,
                                               association__id=association)
         _member = Member.object.get(id=member)
-        remove_perm(permission, _member, _group)
+        remove_perm(permission, _member.user, _group)
         success = True
         return OwnerRemoveGroupPermissionsToMembers(member=_member,
                                                     success=success)
