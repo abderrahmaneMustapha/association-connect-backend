@@ -1,11 +1,12 @@
 from graphene_django import DjangoObjectType
 from .models import (BaseUser, Member, Association, AssociationGroup,
-                     AssociationGroupMember, AssociationType as AssociationTypeModel,
-                     ExpectedAssociationMembersNumber)
+                     AssociationGroupMember, AssociationType as
+                     AssociationTypeModel, ExpectedAssociationMembersNumber)
 import graphene
 
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
+
 
 #types
 class ModelsContentType(DjangoObjectType):
@@ -13,17 +14,24 @@ class ModelsContentType(DjangoObjectType):
         model = ContentType
         fields = '__all__'
 
+
+class ModelsPermissionType(DjangoObjectType):
+    class Meta:
+        model = Permission
+        fields = ['id', 'codename', 'name']
+
+
 class MemberType(DjangoObjectType):
     class Meta:
         model = Member
-        fields = ['id','association', 'user', 'is_owner']
+        fields = ['id', 'association', 'user', 'is_owner']
 
 
 class AssociationType(DjangoObjectType):
     class Meta:
         model = Association
         fields = [
-            'id','name', 'description', 'association_type',
+            'id', 'name', 'description', 'association_type',
             'association_min_max_numbers'
         ]
 
@@ -129,7 +137,8 @@ class AssociationCreationMutation(graphene.Mutation):
     def mutate(root, info, name, description, association_type,
                association_min_max_numbers, phone, email):
 
-        association_type = AssociationTypeModel.objects.get(id=association_type)
+        association_type = AssociationTypeModel.objects.get(
+            id=association_type)
 
         association_min_max_numbers = ExpectedAssociationMembersNumber.objects.get(
             id=association_min_max_numbers)
@@ -164,9 +173,10 @@ class AssociationDeleteMutation(graphene.Mutation):
     def mutate(root, info, id):
         association = Association.objects.filter(id=id)
         association_ = association.first()
-        association.delete() 
+        association.delete()
         success = True
-        return AssociationDeleteMutation(association=association_, success=success)
+        return AssociationDeleteMutation(association=association_,
+                                         success=success)
 
 
 class AssociationUpdateDescriptionMutation(graphene.Mutation):
@@ -179,7 +189,7 @@ class AssociationUpdateDescriptionMutation(graphene.Mutation):
 
     def mutate(root, info, association, description):
         association = Association.objects.get(id=association)
-        association.description=description
+        association.description = description
         association.save()
         success = True
         return AssociationCreationMutation(association=association,
@@ -200,7 +210,7 @@ class AssociationGroupCreationMutation(graphene.Mutation):
         _group = AssociationGroup.objects.create(name=name,
                                                  association=association,
                                                  group_type=group_type)
-        success=True
+        success = True
         return AssociationGroupCreationMutation(group=_group, success=success)
 
 
@@ -217,8 +227,9 @@ class AssociationGroupDeleteMutation(graphene.Mutation):
         _group = AssociationGroup.objects.filter(id=group,
                                                  association=association)
         _group.delete()
-        success=  True
-        return AssociationGroupCreationMutation(group=_group.first(), success=success)
+        success = True
+        return AssociationGroupCreationMutation(group=_group.first(),
+                                                success=success)
 
 
 class AssociationGroupMemberAddMutation(graphene.Mutation):
@@ -230,8 +241,8 @@ class AssociationGroupMemberAddMutation(graphene.Mutation):
     member = graphene.Field(AssociationGroupMemberType)
 
     def mutate(root, info, member, group):
-        _member= Member.objects.get(id=member)
-        _group  = AssociationGroup.objects.get(id=group)
+        _member = Member.objects.get(id=member)
+        _group = AssociationGroup.objects.get(id=group)
         member = AssociationGroupMember.objects.create(member=_member,
                                                        group=_group)
         success = True
@@ -248,11 +259,12 @@ class AssociationGroupMemberRemoveMutation(graphene.Mutation):
     member = graphene.Field(AssociationGroupMemberType)
 
     def mutate(root, info, member, group):
-        group_member = AssociationGroupMember.objects.filter(member=member, group=group)
+        group_member = AssociationGroupMember.objects.filter(member=member,
+                                                             group=group)
         group_member.delete()
         success = True
-        return AssociationGroupMemberRemoveMutation(member=group_member.first(),
-                                                 success=success)
+        return AssociationGroupMemberRemoveMutation(
+            member=group_member.first(), success=success)
 
 
 # end mutations
@@ -265,7 +277,8 @@ class AccountsMutation(graphene.ObjectType):
     archive_member = MemberArchiveMutation.Field()
 
     create_association = AssociationCreationMutation.Field()
-    update_association_description = AssociationUpdateDescriptionMutation.Field()
+    update_association_description = AssociationUpdateDescriptionMutation.Field(
+    )
     delete_assciation = AssociationDeleteMutation.Field()
 
     create_group = AssociationGroupCreationMutation.Field()
@@ -276,10 +289,28 @@ class AccountsMutation(graphene.ObjectType):
 
 
 class AccountsQuery(graphene.ObjectType):
-    get_all_association_object_permissions = graphene.List(ModelsContentType)
+    get_all_association_object_permissions = graphene.List(
+        ModelsPermissionType)
+    get_all_association_group_object_permissions = graphene.List(
+        ModelsPermissionType)    
+    get_all_association_member__permissions = graphene.List(
+        ModelsPermissionType)
+    get_all_association_group_member__permissions = graphene.List(
+        ModelsPermissionType)
 
     def resolve_get_all_association_object_permissions(root, info):
         content_type = ContentType.objects.get_for_model(Association)
         return Permission.objects.filter(content_type=content_type)
 
+    def resolve_get_all_association_group_object_permissions(root, info):
+        content_type = ContentType.objects.get_for_model(AssociationGroup)
+        return Permission.objects.filter(content_type=content_type)
+    
+    def resolve_get_all_association_member__permissions(root, info):
+        content_type = ContentType.objects.get_for_model(Member)
+        return Permission.objects.filter(content_type=content_type)
+    
+    def resolve_get_all_association_group_member__permissions(root, info):
+        content_type = ContentType.objects.get_for_model(AssociationGroupMember)
+        return Permission.objects.filter(content_type=content_type)
 
