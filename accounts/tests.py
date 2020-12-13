@@ -274,3 +274,65 @@ class AccountsMutationsTestCase(TestCase):
         association = Association.objects.get(id=self.association.id)
 
         assert user.has_perm(permission, association) == True
+
+
+    def test_give_member_association_permission(self):
+        client = Client(schema, context_value=self.req)
+        permission = "update_association_info"
+
+        query =  """
+            mutation{
+                removeMemberAssociationPermission(association:%s, member:%s, permission:\"%s\"){
+                    success,
+                    member{id, association{id}, isOwner}
+                }
+            }
+        """ %(self.association.id, self.delete_member.id, permission )
+        response = client.execute(query)
+        assert 'errors' not in response
+
+        user = Member.objects.get(id=self.delete_member.id).user
+        association = Association.objects.get(id=self.association.id)
+
+        assert user.has_perm(permission, association) == False
+
+    def test_give_member_association_permission(self):
+        client = Client(schema, context_value=self.req)
+        permission = "view_group_member_info"
+
+        query =  """
+            mutation{
+                giveMemberGroupPermission(association:%s, member:%s, group:%s, permission:\"%s\"){
+                    success,
+                    member{id, association{id}, isOwner}
+                }
+            }
+        """ %(self.association.id, self.delete_member.id, self.group.id, permission )
+        response = client.execute(query)
+        assert 'errors' not in response
+
+        user = Member.objects.get(id=self.delete_member.id).user
+        group = AssociationGroup.objects.get(id=self.group.id)
+
+        assert user.has_perm(permission, group) == True
+
+    
+    def test_give_member_association_permission(self):
+        client = Client(schema, context_value=self.req)
+        permission = "view_group_member_info"
+
+        query =  """
+            mutation{
+                removeMemberGroupPermission(association:%s, member:%s, group:%s, permission:\"%s\"){
+                    success,
+                    member{id, association{id}, isOwner}
+                }
+            }
+        """ %(self.association.id, self.delete_member.id, self.group.id, permission )
+        response = client.execute(query)
+        assert 'errors' not in response
+
+        user = Member.objects.get(id=self.delete_member.id).user
+        group = AssociationGroup.objects.get(id=self.group.id)
+
+        assert user.has_perm(permission, group) == False

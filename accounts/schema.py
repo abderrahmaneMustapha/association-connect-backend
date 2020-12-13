@@ -340,7 +340,7 @@ class OwnerRemoveGroupPermissionsToMembers(graphene.Mutation):
         _association = Association.objects.get(id=association)
         _group = AssociationGroup.objects.get(id=group,
                                               association__id=association)
-        _member = Member.object.get(id=member)
+        _member = Member.objects.get(id=member)
         remove_perm(permission, _member.user, _group)
         success = True
         return OwnerRemoveGroupPermissionsToMembers(member=_member,
