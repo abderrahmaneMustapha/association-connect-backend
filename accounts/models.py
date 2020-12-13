@@ -100,8 +100,6 @@ class Association(models.Model):
 
     class Meta : 
         permissions = (
-            ('add_association_member', 'Add an new association member'),
-            ('delete_association_member', 'Delete association member'),
             ('update_association_info', 'Update association Info'),
             ('view_association_dashboard', 'View association dashboard')
         )
@@ -114,6 +112,14 @@ class Member (models.Model):
     is_archived = models.BooleanField(_('this user is not a member any more'), default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        permissions = (
+            ('add_association_member', 'Add an new association member'),
+            ('delete_association_member', 'Delete association member'),
+            ('view_association_member', 'View association member'),
+        )
+
 
 class AssociationGroup(models.Model):
     STATIQUE = 'S'
@@ -132,8 +138,6 @@ class AssociationGroup(models.Model):
 
     class Meta:
         permissions = (
-                ('add_group_member', 'Add an new group member'),
-                ('delete_group_member', 'Delete group member'),
                 ('update_group_info', 'Update group Info'),
                 ('view_group_dashboard', 'View group dashboard'),
                 ('delete_group', 'Delete group'),
