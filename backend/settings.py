@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'django_filters',
     # refresh tokens are optional
     'graphql_jwt.refresh_token.apps.RefreshTokenConfig',
+    'guardian'
 ]
 
 MIDDLEWARE = [
@@ -84,6 +85,7 @@ GRAPHENE = {
 AUTHENTICATION_BACKENDS = [
     "graphql_auth.backends.GraphQLAuthBackend",
     'django.contrib.auth.backends.ModelBackend',
+    "guardian.backends.ObjectPermissionBackend"
 ]
 
 GRAPHQL_JWT = {

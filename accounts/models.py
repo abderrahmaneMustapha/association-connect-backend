@@ -98,6 +98,9 @@ class Association(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        pass
+
 
 class Member (models.Model):
     user = models.ForeignKey(BaseUser, verbose_name=_("member"), on_delete=models.CASCADE)
