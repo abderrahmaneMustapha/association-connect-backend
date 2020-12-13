@@ -12,7 +12,7 @@ from django.test import RequestFactory
 
 
 class AccountsMutationsTestCase(TestCase):
-    databases = {"test_", "default"}
+    databases = {"default"}
 
     @classmethod
     def setUpTestData(cls):
@@ -255,6 +255,22 @@ class AccountsMutationsTestCase(TestCase):
         group_exists = AssociationGroupMember.objects.filter(member=self.delete_member.id, id=self.group.id).exists()
         assert group_exists == False
 
+    def test_give_member_association_permission(self):
+        client = Client(schema, context_value=self.req)
+        permission = "update_association_info"
 
+        query =  """
+            mutation{
+                giveMemberAssociationPermission(association:%s, member:%s, permission:\"%s\"){
+                    success,
+                    member{id, association{id}, isOwner}
+                }
+            }
+        """ %(self.association.id, self.delete_member.id, permission )
+        response = client.execute(query)
+        assert 'errors' not in response
 
+        user = Member.objects.get(id=self.delete_member.id).user
+        association = Association.objects.get(id=self.association.id)
 
+        assert user.has_perm(permission, association) == True
