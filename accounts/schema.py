@@ -7,7 +7,8 @@ import graphene
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 
-from guardian.shortcuts import assign_perm
+from guardian.shortcuts import assign_perm, remove_perm
+
 
 #types
 class ModelsContentType(DjangoObjectType):
@@ -267,11 +268,12 @@ class AssociationGroupMemberRemoveMutation(graphene.Mutation):
         return AssociationGroupMemberRemoveMutation(
             member=group_member.first(), success=success)
 
+
 class OwnerGiveAssociationPermissionsToMembers(graphene.Mutation):
     class Arguments:
         permission = graphene.String()
         association = graphene.ID()
-        member  = graphene.ID()
+        member = graphene.ID()
 
     success = graphene.Boolean()
     member = graphene.Field(MemberType)
@@ -279,27 +281,71 @@ class OwnerGiveAssociationPermissionsToMembers(graphene.Mutation):
     def mutate(root, info, permission, association, member):
         _association = Association.objects.get(id=association)
         _member = Member.object.get(id=member)
-        assign_perm(permission, _member, _association )
+        assign_perm(permission, _member, _association)
         success = True
-        return OwnerGiveAssociationPermissionsToMembers(member=_member, success=success)
+        return OwnerGiveAssociationPermissionsToMembers(member=_member,
+                                                        success=success)
+
+
+class OwnerRemoveAssociationPermissionsToMembers(graphene.Mutation):
+    class Arguments:
+        permission = graphene.String()
+        association = graphene.ID()
+        member = graphene.ID()
+
+    success = graphene.Boolean()
+    member = graphene.Field(MemberType)
+
+    def mutate(root, info, permission, association, member):
+        _association = Association.objects.get(id=association)
+        _member = Member.object.get(id=member)
+        remove_perm(permission, _member, _association)
+        success = True
+        return OwnerRemoveAssociationPermissionsToMembers(member=_member,
+                                                          success=success)
+
 
 class OwnerGiveGroupPermissionsToMembers(graphene.Mutation):
     class Arguments:
         permission = graphene.String()
         association = graphene.ID()
         group = graphene.ID()
-        member  = graphene.ID()
+        member = graphene.ID()
 
     success = graphene.Boolean()
     member = graphene.Field(MemberType)
 
-    def mutate(root, info, permission, association, group,member):
+    def mutate(root, info, permission, association, group, member):
         _association = Association.objects.get(id=association)
-        _group = AssociationGroup.objects.get(id=group, association__id=association)
+        _group = AssociationGroup.objects.get(id=group,
+                                              association__id=association)
         _member = Member.object.get(id=member)
-        assign_perm(permission, _member, _group )
+        assign_perm(permission, _member, _group)
         success = True
-        return OwnerGiveAssociationPermissionsToMembers(member=_member, success=success)
+        return OwnerGiveGroupPermissionsToMembers(member=_member,
+                                                  success=success)
+
+
+class OwnerRemoveGroupPermissionsToMembers(graphene.Mutation):
+    class Arguments:
+        permission = graphene.String()
+        association = graphene.ID()
+        group = graphene.ID()
+        member = graphene.ID()
+
+    success = graphene.Boolean()
+    member = graphene.Field(MemberType)
+
+    def mutate(root, info, permission, association, group, member):
+        _association = Association.objects.get(id=association)
+        _group = AssociationGroup.objects.get(id=group,
+                                              association__id=association)
+        _member = Member.object.get(id=member)
+        remove_perm(permission, _member, _group)
+        success = True
+        return OwnerRemoveGroupPermissionsToMembers(member=_member,
+                                                    success=success)
+
 
 # end mutations
 
@@ -321,15 +367,24 @@ class AccountsMutation(graphene.ObjectType):
     add_member_group = AssociationGroupMemberAddMutation.Field()
     remove_member_group = AssociationGroupMemberRemoveMutation.Field()
 
+    #permissions
+    give_member_association_permission = OwnerGiveAssociationPermissionsToMembers.Field(
+    )
+    remove_member_association_permission = OwnerRemoveAssociationPermissionsToMembers.Field(
+    )
+    give_member_group_permission = OwnerGiveGroupPermissionsToMembers.Field()
+    remove_member_group_permission = OwnerRemoveGroupPermissionsToMembers.Field(
+    )
+
 
 class AccountsQuery(graphene.ObjectType):
     get_all_association_object_permissions = graphene.List(
         ModelsPermissionType)
     get_all_association_group_object_permissions = graphene.List(
-        ModelsPermissionType)    
-    get_all_association_member__permissions = graphene.List(
         ModelsPermissionType)
-    get_all_association_group_member__permissions = graphene.List(
+    get_all_association_member_object_permissions = graphene.List(
+        ModelsPermissionType)
+    get_all_association_group_member_object_permissions = graphene.List(
         ModelsPermissionType)
 
     def resolve_get_all_association_object_permissions(root, info):
@@ -339,12 +394,13 @@ class AccountsQuery(graphene.ObjectType):
     def resolve_get_all_association_group_object_permissions(root, info):
         content_type = ContentType.objects.get_for_model(AssociationGroup)
         return Permission.objects.filter(content_type=content_type)
-    
-    def resolve_get_all_association_member__permissions(root, info):
+
+    def resolve_get_all_association_member_object_permissions(root, info):
         content_type = ContentType.objects.get_for_model(Member)
         return Permission.objects.filter(content_type=content_type)
-    
-    def resolve_get_all_association_group_member__permissions(root, info):
-        content_type = ContentType.objects.get_for_model(AssociationGroupMember)
+
+    def resolve_get_all_association_group_member_object_permissions(
+            root, info):
+        content_type = ContentType.objects.get_for_model(
+            AssociationGroupMember)
         return Permission.objects.filter(content_type=content_type)
- 
