@@ -8,8 +8,8 @@ class Form(models.Model):
     email = models.EmailField(_("form email"))
     start_date = models.DateField(_("day when form is gonna be available"))
     days = models.IntegerField(_("how many days this form is gonna be available"))
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True)
 
 class Costs(models.Model):
     form = models.ForeignKey(Form, verbose_name=_("cost form"), on_delete=models.CASCADE)
@@ -17,14 +17,14 @@ class Costs(models.Model):
     amount  = models.FloatField(_("amount must be payed"), )    
     membership_time = models.DurationField(_("membership time when a user pay this amount"), null=True, blank=True)
     show_in_form  = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True)
 
 class UserPayedCosts(models.Model):
     cost  = models.ForeignKey(Costs, verbose_name=_("cost payed"), on_delete=models.CASCADE)
     user = models.ForeignKey(BaseUser, verbose_name=_("user who payed ths cost"), on_delete=models.CASCADE)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True)
 
     def create(self, *args, **kwargs):
         member = Member.objects.create(user=self.user, association=self.cost.form.association)
@@ -44,17 +44,17 @@ class Field(models.Model):
     show_in_form = models.BooleanField("show field in form", default=True)
     required =  models.BooleanField("field required", default=True)
     type = models.ForeignKey(FieldType, verbose_name=_("field type"), on_delete=models.CASCADE)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True)
 class FieldData(models.Model):
     field = models.OneToOneField(Field, verbose_name=_("field"), on_delete=models.CASCADE)
     user =  models.ForeignKey(BaseUser, verbose_name=_("user field"), on_delete=models.CASCADE)
     data = models.JSONField(verbose_name=_("field data"))
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True)
 
 class FormFilledByUser(models.Model):
     form = models.ForeignKey(Form, verbose_name=_("field form"), on_delete=models.CASCADE)
-    user =  user =  models.ForeignKey(BaseUser, verbose_name=_("user field"), on_delete=models.CASCADE)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    user =  user =  models.ForeignKey(BaseUser, verbose_name=_("user field"), on_delete=models.CASCADE, null=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True)
