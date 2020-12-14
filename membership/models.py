@@ -19,6 +19,7 @@ class Costs(models.Model):
     show_in_form  = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
 class UserPayedCosts(models.Model):
     cost  = models.ForeignKey(Costs, verbose_name=_("cost payed"), on_delete=models.CASCADE)
     user = models.ForeignKey(BaseUser, verbose_name=_("user who payed ths cost"), on_delete=models.CASCADE)
@@ -30,3 +31,20 @@ class UserPayedCosts(models.Model):
         AssociationMembership.objects.create(membership_time=self.cost.membership_time, member=member)
 
         super().create(*args, **kwargs)
+
+class FieldType(models.Model):
+    name  = models.CharField("field name", max_length=125)
+
+
+class Field(models.Model):
+    label = models.CharField("field label", max_length=125)
+    description = models.TextField("field description", max_length=500)
+    placeholder = models.CharField("field placeholder", max_lenght=125)
+    show_in_form = models.BooleanField("show field in form", default=True)
+    required =  models.BooleanField("field required", default=True)
+    type = models.ForeignKey(FieldType, verbose_name=_("field type"))
+
+class FieldData(models.Model):
+    field = models.ForeignKey(Field, verbose_name=_("field"), on_delete=models.CASCADE)
+    user =  models.ForeignKey(BaseUser, verbose_name=_("user field"), on_delete=models.CASCADE)
+    data = models.JSONField(verbose_name=_("field data"), name=_("field data"), on_delete=models.CASCADE)
