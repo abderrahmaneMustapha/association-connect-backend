@@ -37,15 +37,24 @@ class FieldType(models.Model):
 
 
 class Field(models.Model):
-    form = models.ForeignKey(Form, verbose_name=_("field form"), on_delete=models.CASCADE)
+    form = models.ForeignKey(Form, verbose_name=_("form"), on_delete=models.CASCADE)
     label = models.CharField("field label", max_length=125)
     description = models.TextField("field description", max_length=500)
     placeholder = models.CharField("field placeholder", max_length=125)
     show_in_form = models.BooleanField("show field in form", default=True)
     required =  models.BooleanField("field required", default=True)
     type = models.ForeignKey(FieldType, verbose_name=_("field type"), on_delete=models.CASCADE)
-
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 class FieldData(models.Model):
-    field = models.ForeignKey(Field, verbose_name=_("field"), on_delete=models.CASCADE)
+    field = models.OneToOneField(Field, verbose_name=_("field"), on_delete=models.CASCADE)
     user =  models.ForeignKey(BaseUser, verbose_name=_("user field"), on_delete=models.CASCADE)
     data = models.JSONField(verbose_name=_("field data"))
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+class FormFilledByUser(models.Model):
+    form = models.ForeignKey(Form, verbose_name=_("field form"), on_delete=models.CASCADE)
+    user =  user =  models.ForeignKey(BaseUser, verbose_name=_("user field"), on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
