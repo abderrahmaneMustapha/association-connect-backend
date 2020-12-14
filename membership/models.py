@@ -1,6 +1,6 @@
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
-from accounts.models import BaseUser, Association
+from accounts.models import BaseUser, Association, AssociationMembership, Member
 class Form(models.Model):
     association  = models.ForeignKey(Association, verbose_name=_("association"), on_delete=models.CASCADE)
     title =  models.CharField(_("form title"), max_length=125 )
@@ -25,6 +25,8 @@ class UserPayedCosts(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    def save(self, *args, **kwargs):
-        
-        super().save(*args, **kwargs)
+    def create(self, *args, **kwargs):
+        member = Member.objects.create(user=self.user, association=self.cost.form.association)
+        AssociationMembership.objects.create(membership_time=self.cost.membership_time, member=member)
+
+        super().create(*args, **kwargs)
