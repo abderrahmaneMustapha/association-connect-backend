@@ -58,3 +58,9 @@ class FormFilledByUser(models.Model):
     user =  user =  models.ForeignKey(BaseUser, verbose_name=_("user field"), on_delete=models.CASCADE, null=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)
+
+    def save(self, *args, **kwargs):
+        member = Member.objects.create(user=self.user, association=self.cost.form.association)
+        AssociationMembership.objects.create(membership_time=self.cost.membership_time, member=member)
+
+        super().save(*args, **kwargs)
