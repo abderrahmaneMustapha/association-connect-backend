@@ -4,7 +4,7 @@ from graphql_auth.schema import UserQuery, MeQuery
 
 from graphql_auth import mutations
 from accounts.schema  import AccountsMutation, AccountsQuery
-
+from membership.schema import MembershipMutation, MembershipQuery
 class AuthMutation(graphene.ObjectType):
     register = mutations.Register.Field()
     verify_account = mutations.VerifyAccount.Field()
@@ -26,11 +26,11 @@ class AuthMutation(graphene.ObjectType):
     revoke_token = mutations.RevokeToken.Field()
 
 
-class Query(UserQuery, MeQuery,AccountsQuery, graphene.ObjectType):
+class Query(UserQuery, MeQuery,AccountsQuery, MembershipQuery, graphene.ObjectType):
     pass
 
 
-class Mutation(AuthMutation,AccountsMutation, graphene.ObjectType):
+class Mutation(AuthMutation,AccountsMutation, MembershipMutation, graphene.ObjectType):
    pass
 
 schema = graphene.Schema(query=Query, mutation=Mutation)
