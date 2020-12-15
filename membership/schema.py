@@ -36,6 +36,7 @@ class FormMetaAddMutation(graphene.Mutation):
                                     email=email,
                                     start_date=start_date,
                                     days=days)
+        _form.full_clean()
         success = True
         return FormMetaAddMutation(form=_form, success=success)
 
