@@ -5,7 +5,7 @@ class Form(models.Model):
     association  = models.ForeignKey(Association, verbose_name=_("association"), on_delete=models.CASCADE)
     title =  models.CharField(_("form title"), max_length=125 )
     description = models.TextField(_("form description"),max_length=250)
-    email = models.EmailField(_("form email"))
+    email = models.EmailField(_("form email"), max_length = 254)
     start_date = models.DateField(_("day when form is gonna be available"))
     days = models.IntegerField(_("how many days this form is gonna be available"))
     created_at = models.DateTimeField(auto_now_add=True, null=True)
