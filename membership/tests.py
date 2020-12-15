@@ -74,4 +74,4 @@ class MembershipMutationsTestCase(TestCase):
                         "abdoumail", date.today(), "New form")
 
         response = client.execute(query)
-        assert 'errors'  in response
+        assert "{'email': ['Enter a valid email address.']}"  in response['errors'][0]['message']
