@@ -1,6 +1,6 @@
 from graphene_django import DjangoObjectType
 import graphene
-from .models import Form, Association, Costs,  UserPayedCosts, BaseUser, Field
+from .models import Form, Association, Costs, UserPayedCosts, BaseUser, Field, FieldType, FieldData
 
 
 class FormMetaType(DjangoObjectType):
@@ -11,20 +11,34 @@ class FormMetaType(DjangoObjectType):
             'days'
         ]
 
+
 class CostType(DjangoObjectType):
     class Meta:
-        model  = Costs
-        fields = ['id', 'form', 'description', 'amount', 'membership_time', 'show_in_form' ]
+        model = Costs
+        fields = [
+            'id', 'form', 'description', 'amount', 'membership_time',
+            'show_in_form'
+        ]
 
-class  UserPayedCostType(DjangoObjectType):
+
+class UserPayedCostType(DjangoObjectType):
     class Meta:
-        model =  UserPayedCosts
+        model = UserPayedCosts
         fields = ['id', 'cost', 'user']
+
 
 class FormFieldType(DjangoObjectType):
     class Meta:
         model = Field
-        fields =['id', 'label', 'description', 'placeholder', 'show_in_form', 'required', 'type']
+        fields = [
+            'id', 'label', 'description', 'placeholder', 'show_in_form',
+            'required', 'type'
+        ]
+
+class FieldDataType(DjangoObjectType):
+    class Meta:
+        model = FieldData
+        fields = ['id', 'field', 'user', 'data']
 #mutations
 
 
@@ -53,30 +67,37 @@ class FormMetaAddMutation(graphene.Mutation):
         success = True
         return FormMetaAddMutation(form=_form, success=success)
 
+
 class AddCostMutation(graphene.Mutation):
     class Arguments:
         form = graphene.ID()
         description = graphene.String()
-        amount  = graphene.Float()   
+        amount = graphene.Float()
         membership_time = graphene.String()
-        show_in_form  = graphene.Boolean()
-    
-    cost  =  graphene.Field(CostType)
+        show_in_form = graphene.Boolean()
+
+    cost = graphene.Field(CostType)
     success = graphene.Boolean()
 
-    def mutate(root, info, form, description, amount, membership_time, show_in_form):
+    def mutate(root, info, form, description, amount, membership_time,
+               show_in_form):
         _form = Form.objects.get(id=form)
-        cost = Costs.objects.create(form=_form, description=description, amount=amount, membership_time=membership_time, show_in_form=show_in_form)
+        cost = Costs.objects.create(form=_form,
+                                    description=description,
+                                    amount=amount,
+                                    membership_time=membership_time,
+                                    show_in_form=show_in_form)
         cost.full_clean()
         success = True
         return AddCostMutation(cost=cost, success=success)
+
 
 class AddUserPayedCostMutation(graphene.Mutation):
     class Arguments:
         cost = graphene.ID()
         user = graphene.String()
-    
-    cost  = graphene.Field(UserPayedCostType)
+
+    cost = graphene.Field(UserPayedCostType)
     success = graphene.Boolean()
 
     def mutate(root, info, cost, user):
@@ -87,6 +108,7 @@ class AddUserPayedCostMutation(graphene.Mutation):
         success = True
         return AddUserPayedCostMutation(cost=user_payed_cost, success=success)
 
+
 class AddFormFieldMutation(graphene.Mutation):
     class Arguments:
         form = graphene.ID()
@@ -96,17 +118,35 @@ class AddFormFieldMutation(graphene.Mutation):
         show_in_form = graphene.Boolean()
         required = graphene.Boolean()
         type = graphene.ID()
-    
+
+    field = graphene.Field(FormFieldType)
+    success = graphene.Boolean()
+
+    def mutate(root, info, form, label, description, placeholder, show_in_form,
+               required, type):
+        _form = Form.objects.get(pk=form)
+        _field_type = FieldType.objects.get(id=type)
+        _field = Field.objects.create(form=_form,
+                                      label=label,
+                                      description=description,
+                                      placeholder=placeholder,
+                                      show_in_form=show_in_form,
+                                      required=required,
+                                      type=_field_type)
+        success  = True
+
+        return AddFormFieldMutation(field=_field, success=success)
+
+
 #global query and mutations
 class MembershipMutation(graphene.ObjectType):
     add_form_meta = FormMetaAddMutation.Field()
     add_cost_to_form = AddCostMutation.Field()
     add_user_payed_costs = AddUserPayedCostMutation.Field()
+    add_field_to_form = AddFormFieldMutation.Field()
 
 class MembershipQuery(graphene.ObjectType):
     get_form_meta = graphene.Field(FormMetaType, id=graphene.ID())
 
     def resolve_get_form_meta(root, info, id):
         return Form.objects.get(id=id)
-
-

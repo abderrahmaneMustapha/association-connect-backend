@@ -47,7 +47,7 @@ class Field(models.Model):
     type = models.ForeignKey(FieldType, verbose_name=_("field type"), on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)
-class FieldData(models.Model):
+class (models.Model):
     field = models.OneToOneField(Field, verbose_name=_("field"), on_delete=models.CASCADE)
     user =  models.ForeignKey(BaseUser, verbose_name=_("user field"), on_delete=models.CASCADE)
     data = models.JSONField(verbose_name=_("field data"))

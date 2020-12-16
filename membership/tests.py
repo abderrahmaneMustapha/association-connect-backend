@@ -14,7 +14,7 @@ class MembershipMutationsTestCase(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        cls.field_type = FieldType.object.create(name="char")
+        cls.field_type = FieldType.objects.create(name="char")
         cls.user = BaseUser.objects.create(
             first_name="toumi",
             last_name="abderrahmane",
@@ -124,5 +124,22 @@ class MembershipMutationsTestCase(TestCase):
         membership_exists = AssociationMembership.objects.filter(member__user__key=self.user.key).exists()
         assert  membership_exists
 
-    
+    def test_add_field_to_form_mutation(self):
+        client = Client(schema)
+
+        description = "this is my field description"
+        label = "field"
+        placeholder = "please add field"
+        query = """mutation{
+            addFieldToForm(description:\"%s\", form:%s, label:\"%s\", placeholder:\"%s\", 
+            required:true, showInForm:true, type:%s){
+                field{id, label},
+                success
+            }
+        }""" % (description , self.form.id, label, placeholder, self.field_type.id )
+        
+       
+        response = client.execute(query)
+        print(response)
+        assert 'errors' not in response 
 
