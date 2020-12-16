@@ -137,7 +137,21 @@ class AddFormFieldMutation(graphene.Mutation):
 
         return AddFormFieldMutation(field=_field, success=success)
 
+class AddFieldData(graphene.Mutation):
+    class Arguments:
+        field = graphene.ID()
+        user =  graphene.String()
+        data = graphene.JSONString()
+    
+    data = graphene.Field(FieldDataType)
+    success = graphene.Boolean()
+    def mutate(root, info, field, user, data):
+        _user = BaseUser.objects.get(pk=user)
+        _field = Field.objects.get(pk=field)
 
+        data = FieldData.objects.create(field=_field, user=_user, data=data)
+        return AddFieldData(data=data, success=success)
+        
 #global query and mutations
 class MembershipMutation(graphene.ObjectType):
     add_form_meta = FormMetaAddMutation.Field()
