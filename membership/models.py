@@ -26,11 +26,13 @@ class UserPayedCosts(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)
 
-    def create(self, *args, **kwargs):
-        member = Member.objects.create(user=self.user, association=self.cost.form.association)
-        AssociationMembership.objects.create(membership_time=self.cost.membership_time, member=member)
+    def save(self, *args, **kwargs):
+        super(UserPayedCosts, self).save(*args, **kwargs)
+        
+        member = Member.objects.get_or_create(user=self.user, association=self.cost.form.association)
+        AssociationMembership.objects.get_or_create(membership_time=self.cost.membership_time, member=member[0])
 
-        super().create(*args, **kwargs)
+      
 
 class FieldType(models.Model):
     name  = models.CharField("field name", max_length=125)

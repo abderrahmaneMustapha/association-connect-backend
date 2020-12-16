@@ -1,6 +1,6 @@
 from graphene_django import DjangoObjectType
 import graphene
-from .models import Form, Association, Costs
+from .models import Form, Association, Costs,  UserPayedCosts, BaseUser
 
 
 class FormMetaType(DjangoObjectType):
@@ -15,6 +15,11 @@ class CostType(DjangoObjectType):
     class Meta:
         model  = Costs
         fields = ['id', 'form', 'description', 'amount', 'membership_time', 'show_in_form' ]
+
+class  UserPayedCostType(DjangoObjectType):
+    class Meta:
+        model =  UserPayedCosts
+        fields = ['id', 'cost', 'user']
 #mutations
 
 
@@ -43,7 +48,7 @@ class FormMetaAddMutation(graphene.Mutation):
         success = True
         return FormMetaAddMutation(form=_form, success=success)
 
-class CostMutation(graphene.Mutation):
+class AddCostMutation(graphene.Mutation):
     class Arguments:
         form = graphene.ID()
         description = graphene.String()
@@ -59,14 +64,30 @@ class CostMutation(graphene.Mutation):
         cost = Costs.objects.create(form=_form, description=description, amount=amount, membership_time=membership_time, show_in_form=show_in_form)
         cost.full_clean()
         success = True
-        return CostMutation(cost=cost, success=success)
+        return AddCostMutation(cost=cost, success=success)
+
+class AddUserPayedCostMutation(graphene.Mutation):
+    class Arguments:
+        cost = graphene.ID()
+        user = graphene.String()
+    
+    cost  = graphene.Field(UserPayedCostType)
+    success = graphene.Boolean()
+
+    def mutate(root, info, cost, user):
+        _cost = Costs.objects.get(id=cost)
+        _user = BaseUser.objects.get(pk=user)
+        user_payed_cost = UserPayedCosts.objects.create(cost=_cost, user=_user)
+        user_payed_cost.full_clean()
+        success = True
+        return AddUserPayedCostMutation(cost=user_payed_cost, success=success)
 
 
 #global query and mutations
 class MembershipMutation(graphene.ObjectType):
     add_form_meta = FormMetaAddMutation.Field()
-    add_cost_to_form = CostMutation.Field()
-
+    add_cost_to_form = AddCostMutation.Field()
+    add_user_payed_costs = AddUserPayedCostMutation.Field()
 
 class MembershipQuery(graphene.ObjectType):
     get_form_meta = graphene.Field(FormMetaType, id=graphene.ID())
