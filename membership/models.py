@@ -28,7 +28,6 @@ class UserPayedCosts(models.Model):
 
     def save(self, *args, **kwargs):
         super(UserPayedCosts, self).save(*args, **kwargs)
-        
         member = Member.objects.get_or_create(user=self.user, association=self.cost.form.association)
         AssociationMembership.objects.get_or_create(membership_time=self.cost.membership_time, member=member[0])
 
@@ -64,5 +63,4 @@ class FormFilledByUser(models.Model):
     def save(self, *args, **kwargs):
         member = Member.objects.create(user=self.user, association=self.cost.form.association)
         AssociationMembership.objects.create(membership_time=self.cost.membership_time, member=member)
-
         super().save(*args, **kwargs)

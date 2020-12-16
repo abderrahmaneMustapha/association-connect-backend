@@ -1,6 +1,6 @@
 from graphene_django import DjangoObjectType
 import graphene
-from .models import Form, Association, Costs,  UserPayedCosts, BaseUser
+from .models import Form, Association, Costs,  UserPayedCosts, BaseUser, Field
 
 
 class FormMetaType(DjangoObjectType):
@@ -20,6 +20,11 @@ class  UserPayedCostType(DjangoObjectType):
     class Meta:
         model =  UserPayedCosts
         fields = ['id', 'cost', 'user']
+
+class FormFieldType(DjangoObjectType):
+    class Meta:
+        model = Field
+        fields =['id', 'label', 'description', 'placeholder', 'show_in_form', 'required', 'type']
 #mutations
 
 
@@ -82,7 +87,16 @@ class AddUserPayedCostMutation(graphene.Mutation):
         success = True
         return AddUserPayedCostMutation(cost=user_payed_cost, success=success)
 
-
+class AddFormFieldMutation(graphene.Mutation):
+    class Arguments:
+        form = graphene.ID()
+        label = graphene.String()
+        description = graphene.String()
+        placeholder = graphene.String()
+        show_in_form = graphene.Boolean()
+        required = graphene.Boolean()
+        type = graphene.ID()
+    
 #global query and mutations
 class MembershipMutation(graphene.ObjectType):
     add_form_meta = FormMetaAddMutation.Field()

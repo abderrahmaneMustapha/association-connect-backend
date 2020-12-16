@@ -6,7 +6,7 @@ from datetime import date,timedelta
 from backend.schema import schema
 from accounts.models import (Association, AssociationType,
                              ExpectedAssociationMembersNumber, AssociationMembership, Member)
-from .models import (Form, Association, BaseUser, Member, Costs)
+from .models import (Form, Association, BaseUser, Member, Costs, FieldType)
 
 
 class MembershipMutationsTestCase(TestCase):
@@ -14,6 +14,7 @@ class MembershipMutationsTestCase(TestCase):
 
     @classmethod
     def setUpTestData(cls):
+        cls.field_type = FieldType.object.create(name="char")
         cls.user = BaseUser.objects.create(
             first_name="toumi",
             last_name="abderrahmane",
