@@ -133,6 +133,7 @@ class AddFormFieldMutation(graphene.Mutation):
                                       show_in_form=show_in_form,
                                       required=required,
                                       type=_field_type)
+        _field.full_clean()
         success  = True
 
         return AddFormFieldMutation(field=_field, success=success)
@@ -150,6 +151,7 @@ class AddFieldData(graphene.Mutation):
         _field = Field.objects.get(pk=field)
 
         data = FieldData.objects.create(field=_field, user=_user, data=data)
+        data.full_clean()
         return AddFieldData(data=data, success=success)
         
 #global query and mutations
@@ -158,7 +160,7 @@ class MembershipMutation(graphene.ObjectType):
     add_cost_to_form = AddCostMutation.Field()
     add_user_payed_costs = AddUserPayedCostMutation.Field()
     add_field_to_form = AddFormFieldMutation.Field()
-
+    add_data_to_field = AddFieldData.Field()
 class MembershipQuery(graphene.ObjectType):
     get_form_meta = graphene.Field(FormMetaType, id=graphene.ID())
 

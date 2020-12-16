@@ -6,7 +6,7 @@ from datetime import date,timedelta
 from backend.schema import schema
 from accounts.models import (Association, AssociationType,
                              ExpectedAssociationMembersNumber, AssociationMembership, Member)
-from .models import (Form, Association, BaseUser, Member, Costs, FieldType)
+from .models import (Form, Association, BaseUser, Member, Costs, FieldType, Field, FieldData)
 
 
 class MembershipMutationsTestCase(TestCase):
@@ -14,7 +14,7 @@ class MembershipMutationsTestCase(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        cls.field_type = FieldType.objects.create(name="char")
+        
         cls.user = BaseUser.objects.create(
             first_name="toumi",
             last_name="abderrahmane",
@@ -48,6 +48,10 @@ class MembershipMutationsTestCase(TestCase):
             membership_time=timedelta(days =-1, seconds = 68400), 
             show_in_form=True
         )
+
+        cls.field_type = FieldType.objects.create(name="char")
+        cls.field = Field.objects.create(form=cls.form, label="azeaze", description="azeaze", placeholder="qazeaze", show_in_form=True,
+               required=True, type=cls.field_type)
 
     def test_add_form_meta_data(self):
         client = Client(schema)
@@ -140,6 +144,21 @@ class MembershipMutationsTestCase(TestCase):
         
        
         response = client.execute(query)
-        print(response)
         assert 'errors' not in response 
 
+    def test_add_field_data_to_form_mutation(self):
+        client = Client(schema)
+
+        data = "{ data : \"this is my field description\"}"
+      
+        query = """mutation{
+            addDataToField(data:\"%s\", field:%s, user:\"%s\"){
+                data{id, field{id, description}},
+                success
+            }
+        }""" % (data , self.field.id, self.user.key)
+        
+       
+        response = client.execute(query)
+        print(response)
+        assert 'errors' not in response 
