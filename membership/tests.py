@@ -149,7 +149,7 @@ class MembershipMutationsTestCase(TestCase):
     def test_add_field_data_to_form_mutation(self):
         client = Client(schema)
 
-        data = "{ data : \"this is my field description\"}"
+        data = { "name" : "this is my field description"}
       
         query = """mutation{
             addDataToField(data:\"%s\", field:%s, user:\"%s\"){
@@ -158,7 +158,8 @@ class MembershipMutationsTestCase(TestCase):
             }
         }""" % (data , self.field.id, self.user.key)
         
-       
+
+        
         response = client.execute(query)
-        print(response)
+        
         assert 'errors' not in response 

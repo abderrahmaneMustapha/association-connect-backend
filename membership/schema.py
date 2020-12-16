@@ -142,17 +142,19 @@ class AddFieldData(graphene.Mutation):
     class Arguments:
         field = graphene.ID()
         user =  graphene.String()
-        data = graphene.JSONString()
+        data = graphene.String()
     
     data = graphene.Field(FieldDataType)
     success = graphene.Boolean()
     def mutate(root, info, field, user, data):
         _user = BaseUser.objects.get(pk=user)
         _field = Field.objects.get(pk=field)
-
-        data = FieldData.objects.create(field=_field, user=_user, data=data)
-        data.full_clean()
-        return AddFieldData(data=data, success=success)
+    
+        _data = FieldData.objects.create(field=_field, user=_user, data=data)
+        _data.full_clean()
+        print(_data.data)
+        success = True
+        return AddFieldData(data=_data, success=success)
         
 #global query and mutations
 class MembershipMutation(graphene.ObjectType):
