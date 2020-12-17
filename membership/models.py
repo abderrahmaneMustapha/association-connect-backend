@@ -55,6 +55,12 @@ class FormFilledByUser(models.Model):
     updated_at = models.DateTimeField(auto_now=True, null=True)
 
     def save(self, *args, **kwargs):
+        fields = Field.objects.filter(form=self.user_payed_cost.cost.form, show_in_form=True, required=True)
+        for field in fields:
+            field_data = FieldData.objects.get(field=field)
+            print(field_data.data)
         member = Member.objects.create(user=self.user_payed_cost.user, association=self.user_payed_cost.cost.form.association)        
         AssociationMembership.objects.create(membership_time=self.user_payed_cost.cost.membership_time, member=member)
+
+
         super().save(*args, **kwargs)
