@@ -6,7 +6,7 @@ from datetime import date,timedelta
 from backend.schema import schema
 from accounts.models import (Association, AssociationType,
                              ExpectedAssociationMembersNumber, AssociationMembership, Member)
-from .models import (Form, Association, BaseUser, Member, Costs, FieldType, Field, FieldData)
+from .models import (Form, Association, BaseUser, Member, Costs, FieldType, Field, FieldData, UserPayedCosts)
 
 
 class MembershipMutationsTestCase(TestCase):
@@ -41,6 +41,16 @@ class MembershipMutationsTestCase(TestCase):
             email="assoform@mail.com",
             start_date=date.fromisoformat('2020-12-24'),
             days=44)
+        
+        cls.form_second = Form.objects.create(
+            association=cls.association,
+            title="Add new members second",
+            description=
+            "we can add new member to this  form by filling the fields here",
+            email="assoform@mail.com",
+            start_date=date.fromisoformat('2020-12-24'),
+            days=44)
+
         cls.cost  = Costs.objects.create(
             form = cls.form,
             description="a new cost of membership", 
@@ -49,9 +59,17 @@ class MembershipMutationsTestCase(TestCase):
             show_in_form=True
         )
 
+        cls.user_payed_cost = UserPayedCosts.objects.create(user=cls.user, cost=cls.cost)
+
         cls.field_type = FieldType.objects.create(name="char")
-        cls.field = Field.objects.create(form=cls.form, label="azeaze", description="azeaze", placeholder="qazeaze", show_in_form=True,
+
+        cls.field = Field.objects.create(form=cls.form_second, label="azeaze", description="azeaze", placeholder="qazeaze", show_in_form=True,
                required=True, type=cls.field_type)
+
+        cls.field_second = Field.objects.create(form=cls.form, label="new label", description=" new label azeaze", placeholder=" new label qazeaze", show_in_form=True,
+               required=True, type=cls.field_type)
+               
+        cls.field_data = FieldData.objects.create(field=cls.field_second, user=cls.user, data={"name": "abderrahmane"})
 
     def test_add_form_meta_data(self):
         client = Client(schema)
@@ -161,19 +179,21 @@ class MembershipMutationsTestCase(TestCase):
         assert 'errors' not in response 
 
     def test_form_filled_by_user(self):
+
         client = Client(schema)
 
         query = """mutation{
-            addUserPayedCosts(cost:%s, user:\"%s\"){
-                    cost{id, cost{id,description}}
+            formFilled(userPayedCost:%s){
+                success
             }
-        }""" % (self.cost.id, self.user.key )
+        }""" % (self.user_payed_cost.id)
         
         response = client.execute(query)
+        print(response)
         assert 'errors' not in response 
         
-        member_exists = Member.objects.filter(user__key=self.user.key).exists()
+        member_exists = Member.objects.filter(user__key=self.user_payed_cost.user.key).exists()
         assert member_exists == True
 
-        membership_exists = AssociationMembership.objects.filter(member__user__key=self.user.key).exists()
+        membership_exists = AssociationMembership.objects.filter(member__user__key=self.user_payed_cost.user.key).exists()
         assert  membership_exists
