@@ -50,14 +50,11 @@ class  FieldData(models.Model):
     updated_at = models.DateTimeField(auto_now=True, null=True)
 
 class FormFilledByUser(models.Model):
-    form = models.ForeignKey(Form, verbose_name=_("field form"), on_delete=models.CASCADE)
-    user =  models.ForeignKey(BaseUser, verbose_name=_("user field"), on_delete=models.CASCADE, null=True, blank=False)
     user_payed_cost = models.ForeignKey(UserPayedCosts, verbose_name=_("user payed cost"), on_delete=models.CASCADE, null=True, blank=False)
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)
 
     def save(self, *args, **kwargs):
-        member = Member.objects.create(user=self.user, association=self.form.association)
-        
+        member = Member.objects.create(user=self.user_payed_cost.user, association=self.user_payed_cost.cost.form.association)        
         AssociationMembership.objects.create(membership_time=self.user_payed_cost.cost.membership_time, member=member)
         super().save(*args, **kwargs)
