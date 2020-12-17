@@ -122,11 +122,7 @@ class MembershipMutationsTestCase(TestCase):
         response = client.execute(query)
         assert 'errors' not in response 
 
-        member_exists = Member.objects.filter(user__key=self.user.key).exists()
-        assert member_exists == True
-
-        membership_exists = AssociationMembership.objects.filter(member__user__key=self.user.key).exists()
-        assert  membership_exists
+       
 
     def test_add_field_to_form_mutation(self):
         client = Client(schema)
@@ -163,3 +159,21 @@ class MembershipMutationsTestCase(TestCase):
         response = client.execute(query)
         
         assert 'errors' not in response 
+
+    def test_form_filled_by_user(self):
+        client = Client(schema)
+
+        query = """mutation{
+            addUserPayedCosts(cost:%s, user:\"%s\"){
+                    cost{id, cost{id,description}}
+            }
+        }""" % (self.cost.id, self.user.key )
+        
+        response = client.execute(query)
+        assert 'errors' not in response 
+        
+        member_exists = Member.objects.filter(user__key=self.user.key).exists()
+        assert member_exists == True
+
+        membership_exists = AssociationMembership.objects.filter(member__user__key=self.user.key).exists()
+        assert  membership_exists
