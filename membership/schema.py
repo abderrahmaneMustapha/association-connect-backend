@@ -1,6 +1,6 @@
 from graphene_django import DjangoObjectType
 import graphene
-from .models import Form, Association, Costs, UserPayedCosts, BaseUser, Field, FieldType, FieldData
+from .models import Form, Association, Costs, UserPayedCosts, BaseUser, Field, FieldType, FieldData, FormFilledByUser
 
 
 class FormMetaType(DjangoObjectType):
@@ -39,6 +39,11 @@ class FieldDataType(DjangoObjectType):
     class Meta:
         model = FieldData
         fields = ['id', 'field', 'user', 'data']
+
+class FormFilledType(DjangoObjectType):
+    class Meta:
+        model = FormFilledByUser
+        fields = [ 'user_payed_cost']
 #mutations
 
 
@@ -152,10 +157,25 @@ class AddFieldData(graphene.Mutation):
     
         _data = FieldData.objects.create(field=_field, user=_user, data=data)
         _data.full_clean()
-        print(_data.data)
         success = True
         return AddFieldData(data=_data, success=success)
-        
+
+class FormFilledByUserMutation(graphene.Mutation):
+    class Arguments:
+        user_payed_cost = graphene.ID()
+    
+    filled_form = graphene.Field(FormFilledType)
+    success = graphene.Boolean()
+
+    def mutate(root, info, user_payed_cost):
+     
+        _user_payed_cost = UserPayedCosts.objects.get(id=user_payed_cost)
+        _form_filled = FormFilledByUser.objects.create( user_payed_cost=_user_payed_cost)
+        _form_filled.full_clean()
+        success = True
+
+        return FormFilledByUserMutation(filled_form=_form_filled, success=success)
+
 #global query and mutations
 class MembershipMutation(graphene.ObjectType):
     add_form_meta = FormMetaAddMutation.Field()
@@ -163,6 +183,7 @@ class MembershipMutation(graphene.ObjectType):
     add_user_payed_costs = AddUserPayedCostMutation.Field()
     add_field_to_form = AddFormFieldMutation.Field()
     add_data_to_field = AddFieldData.Field()
+    form_filled  = FormFilledByUserMutation.Field()
 class MembershipQuery(graphene.ObjectType):
     get_form_meta = graphene.Field(FormMetaType, id=graphene.ID())
 
