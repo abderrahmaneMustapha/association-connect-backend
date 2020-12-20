@@ -68,7 +68,7 @@ class MembershipMutationsTestCase(TestCase):
 
         cls.field_second = Field.objects.create(form=cls.form, label="new label", description=" new label azeaze", placeholder=" new label qazeaze", show_in_form=True,
                required=True, type=cls.field_type)
-               
+
         cls.field_data = FieldData.objects.create(field=cls.field_second, user=cls.user, data={"name": "abderrahmane"})
 
     def test_add_form_meta_data(self):
@@ -112,7 +112,6 @@ class MembershipMutationsTestCase(TestCase):
         response = client.execute(query)
         assert "{'email': ['Enter a valid email address.']}"  in response['errors'][0]['message']
 
-
     def test_add_membership_cost_mutation(self):
         client = Client(schema)
 
@@ -139,9 +138,7 @@ class MembershipMutationsTestCase(TestCase):
         
         response = client.execute(query)
         assert 'errors' not in response 
-
-       
-
+ 
     def test_add_field_to_form_mutation(self):
         client = Client(schema)
 
@@ -189,7 +186,6 @@ class MembershipMutationsTestCase(TestCase):
         }""" % (self.user_payed_cost.id)
         
         response = client.execute(query)
-        print(response)
         assert 'errors' not in response 
         
         member_exists = Member.objects.filter(user__key=self.user_payed_cost.user.key).exists()

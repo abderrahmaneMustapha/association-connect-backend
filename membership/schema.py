@@ -184,8 +184,26 @@ class MembershipMutation(graphene.ObjectType):
     add_field_to_form = AddFormFieldMutation.Field()
     add_data_to_field = AddFieldData.Field()
     form_filled  = FormFilledByUserMutation.Field()
+
+
 class MembershipQuery(graphene.ObjectType):
     get_form_meta = graphene.Field(FormMetaType, id=graphene.ID())
+    get_form_showed_fields = graphene.List(FormFieldType, form_id = graphene.ID())
+    get_form_showed_fields_data = graphene.List(FieldDataType, form_id= graphene.ID())
+    get_form_all_fields = graphene.List(FormFieldType, form_id = graphene.ID())
+    get_form_all_fields_data = graphene.List(FieldDataType, form_id= graphene.ID())
 
     def resolve_get_form_meta(root, info, id):
         return Form.objects.get(id=id)
+    
+    def resolve_get_form_showed_fields(root, info, form_id):
+        return Field.objects.filter(form__id=form_id, show_in_form=True)
+
+    def resolve_get_form_showed_fields_data(root, info, form_id):
+        return FieldData.objects.filter(form__id=form_id, show_in_form=True)
+    
+    def resolve_get_form_all_fields(root, info, form_id):
+        return Field.objects.filter(form__id=form_id, show_in_form=True)
+
+    def resolve_get_form_all_fields_data(root, info, form_id):
+        return FieldData.objects.filter(form__id=form_id, field__show_in_form=True)
