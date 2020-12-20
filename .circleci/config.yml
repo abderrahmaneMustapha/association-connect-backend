@@ -18,8 +18,8 @@ jobs: # A basic unit of work in a run
           username: postgres
           password: $DOCKERHUB_PASSWORD  # context / project UI env-var reference
         environment: # environment variables for the Postgres container.
-          POSTGRES_USER: root
-          POSTGRES_DB: circle_test
+          POSTGRES_USER: postgres
+          POSTGRES_DB: associationdb
     steps: # steps that comprise the `build` job
       - checkout # check out source code to working directory
       - run: sudo chown -R circleci:circleci /usr/local/bin
