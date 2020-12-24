@@ -125,6 +125,28 @@ class AccountsMutationsTestCase(TestCase):
 
         assert member.user.is_association_owner
 
+    def test_create_association_no_register(self):
+        client = Client(schema, context_value=self.req)
+
+        query = """mutation {createAssociationNoRegister( associationType:  %s , 
+  				, name: "new asso", email:"aaa@mail.com" ,phone: "+213780195168")
+                    {
+                            success,association{id,name}
+                    }
+                }""" % (self.association_type.id)
+
+        response = client.execute(query)
+        print(response)
+        assert 'errors' not in response
+
+        member_exists = Member.objects.filter(user=self.user).exists()
+        assert member_exists == True
+
+        member = Member.objects.get(user=self.user)
+        assert member.is_owner
+
+        assert member.user.is_association_owner
+
     def test_delete_association(self):
         client = Client(schema, context_value=self.req)
 
@@ -232,8 +254,6 @@ class AccountsMutationsTestCase(TestCase):
         group_exists = AssociationGroupMember.objects.filter(member=self.delete_member.id, id=self.group.id).exists()
         assert group_exists == True
 
-
-    
     def test_association_remove_member_group(self):
         client = Client(schema, context_value=self.req)
 
@@ -272,7 +292,6 @@ class AccountsMutationsTestCase(TestCase):
         association = Association.objects.get(id=self.association.id)
 
         assert user.has_perm(permission, association) == True
-
 
     def test_give_member_association_permission(self):
         client = Client(schema, context_value=self.req)
@@ -314,7 +333,6 @@ class AccountsMutationsTestCase(TestCase):
 
         assert user.has_perm(permission, group) == True
 
-    
     def test_give_member_association_permission(self):
         client = Client(schema, context_value=self.req)
         permission = "view_group_member_info"
