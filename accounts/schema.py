@@ -147,6 +147,8 @@ class AssociationCreationMutation(graphene.Mutation):
 
         association = Association.objects.create(
             name=name,
+            phone = phone,
+            email = email,
             description=description,
             association_type=association_type,
             association_min_max_numbers=association_min_max_numbers)
@@ -164,6 +166,43 @@ class AssociationCreationMutation(graphene.Mutation):
         return AssociationCreationMutation(association=association,
                                            success=success)
 
+# when a user try to create an association by clicking on the start 
+# a free trial  button on the home page
+class AssociationCreationNoRegisterMutation(graphene.Mutation):
+    class Arguments:
+        name = graphene.String()
+        association_type = graphene.ID()
+        phone =  graphene.String()
+        email =  graphene.String()
+      
+    success = graphene.Boolean()
+    association = graphene.Field(AssociationType)
+
+    def mutate(root, info, name, email, association_type, phone):
+
+        association_type = AssociationTypeModel.objects.get(
+            id=association_type)
+
+
+        association = Association.objects.create(
+            phone = phone,
+            email = email,
+            name=name,
+            association_type=association_type)
+
+        user = info.context.user
+        user.is_association_owner = True
+        user.phone =  phone
+        user.save()
+
+        Member.objects.create(user=user,
+                              association=association,
+                              is_owner=True)
+
+        success = True
+
+        return AssociationCreationMutation(association=association,
+                                           success=success)
 
 class AssociationDeleteMutation(graphene.Mutation):
     class Arguments:
@@ -357,6 +396,7 @@ class AccountsMutation(graphene.ObjectType):
     archive_member = MemberArchiveMutation.Field()
 
     create_association = AssociationCreationMutation.Field()
+    create_association_no_register = AssociationCreationNoRegisterMutation.Field()
     update_association_description = AssociationUpdateDescriptionMutation.Field(
     )
     delete_assciation = AssociationDeleteMutation.Field()
