@@ -128,7 +128,7 @@ CORS_ORIGIN_WHITELIST = [
     #React App domain
     "http://localhost:3000",
     "http://127.0.0.1:3000",
-    "https://association-ten.vercel.app/"
+    "https://association-ten.vercel.app"
 ]
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
