@@ -147,8 +147,8 @@ class AssociationCreationMutation(graphene.Mutation):
 
         association = Association.objects.create(
             name=name,
-            phone = phone,
-            email = email,
+            phone=phone,
+            email=email,
             description=description,
             association_type=association_type,
             association_min_max_numbers=association_min_max_numbers)
@@ -168,15 +168,16 @@ class AssociationCreationMutation(graphene.Mutation):
         return AssociationCreationMutation(association=association,
                                            success=success)
 
-# when a user try to create an association by clicking on the start 
+
+# when a user try to create an association by clicking on the start
 # a free trial  button on the home page
 class AssociationCreationNoRegisterMutation(graphene.Mutation):
     class Arguments:
         name = graphene.String()
         association_type = graphene.ID()
-        phone =  graphene.String()
-        email =  graphene.String()
-      
+        phone = graphene.String()
+        email = graphene.String()
+
     success = graphene.Boolean()
     association = graphene.Field(AssociationType)
 
@@ -185,18 +186,17 @@ class AssociationCreationNoRegisterMutation(graphene.Mutation):
         association_type = AssociationTypeModel.objects.get(
             id=association_type)
 
-
         association = Association.objects.create(
-            phone = phone,
-            email = email,
+            phone=phone,
+            email=email,
             name=name,
             association_type=association_type)
-        
+
         association.slugify_()
         association.save()
         user = info.context.user
         user.is_association_owner = True
-        user.phone =  phone
+        user.phone = phone
         user.save()
 
         Member.objects.create(user=user,
@@ -207,6 +207,7 @@ class AssociationCreationNoRegisterMutation(graphene.Mutation):
 
         return AssociationCreationMutation(association=association,
                                            success=success)
+
 
 class AssociationDeleteMutation(graphene.Mutation):
     class Arguments:
@@ -324,7 +325,7 @@ class OwnerGiveAssociationPermissionsToMembers(graphene.Mutation):
     def mutate(root, info, permission, association, member):
         _association = Association.objects.get(id=association)
         _member = Member.objects.get(id=member)
-        assign_perm(permission,  _member.user, _association)
+        assign_perm(permission, _member.user, _association)
         success = True
         return OwnerGiveAssociationPermissionsToMembers(member=_member,
                                                         success=success)
@@ -342,7 +343,7 @@ class OwnerRemoveAssociationPermissionsToMembers(graphene.Mutation):
     def mutate(root, info, permission, association, member):
         _association = Association.objects.get(id=association)
         _member = Member.objects.get(id=member)
-        remove_perm(permission,  _member.user, _association)
+        remove_perm(permission, _member.user, _association)
         success = True
         return OwnerRemoveAssociationPermissionsToMembers(member=_member,
                                                           success=success)
@@ -363,7 +364,7 @@ class OwnerGiveGroupPermissionsToMembers(graphene.Mutation):
         _group = AssociationGroup.objects.get(id=group,
                                               association__id=association)
         _member = Member.objects.get(id=member)
-        assign_perm(permission,  _member.user, _group)
+        assign_perm(permission, _member.user, _group)
         success = True
         return OwnerGiveGroupPermissionsToMembers(member=_member,
                                                   success=success)
@@ -400,7 +401,8 @@ class AccountsMutation(graphene.ObjectType):
     archive_member = MemberArchiveMutation.Field()
 
     create_association = AssociationCreationMutation.Field()
-    create_association_no_register = AssociationCreationNoRegisterMutation.Field()
+    create_association_no_register = AssociationCreationNoRegisterMutation.Field(
+    )
     update_association_description = AssociationUpdateDescriptionMutation.Field(
     )
     delete_assciation = AssociationDeleteMutation.Field()
@@ -422,7 +424,8 @@ class AccountsMutation(graphene.ObjectType):
 
 
 class AccountsQuery(graphene.ObjectType):
-    get_association_by_slug = graphene.Field(AssociationType, slug=graphene.String(required=True))
+    get_association_by_slug = graphene.Field(
+        AssociationType, slug=graphene.String(required=True))
     get_all_association_object_permissions = graphene.List(
         ModelsPermissionType)
     get_all_association_group_object_permissions = graphene.List(
@@ -434,7 +437,7 @@ class AccountsQuery(graphene.ObjectType):
 
     def resolve_get_association_by_slug(root, info, slug):
         return Association.objects.get(slug=slug)
-        
+
     def resolve_get_all_association_object_permissions(root, info):
         content_type = ContentType.objects.get_for_model(Association)
         return Permission.objects.filter(content_type=content_type)
