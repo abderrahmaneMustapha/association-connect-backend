@@ -3,15 +3,17 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils.translation import ugettext_lazy as _
 from django.core.validators import FileExtensionValidator
-
+from django.utils.text import slugify
 #package
 from phonenumber_field.modelfields import PhoneNumberField
 
 #python
 import uuid
 
+
 #me
 from .managers import CustomUserManager
+
 
 
 # Create your models here.
@@ -82,6 +84,7 @@ class ExpectedAssociationMembersNumber(models.Model):
 
 
 class Association(models.Model):
+    slug = models.SlugField(max_length=40, null=True)
     name = models.CharField(_('name of the association'), max_length=225)
     description = models.TextField(_('description of the association'),
                                    max_length=1500, null=True, blank=True)
@@ -104,6 +107,8 @@ class Association(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def slugify_(self):
+        self.slug = slugify("{} {}".format(self.name, self.id))
     class Meta : 
         permissions = (
             ('update_association_info', 'Update association Info'),
