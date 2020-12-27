@@ -33,7 +33,7 @@ class AssociationType(DjangoObjectType):
     class Meta:
         model = Association
         fields = [
-            'id', 'name', 'description', 'association_type',
+            'id', 'slug', 'name', 'description', 'association_type',
             'association_min_max_numbers'
         ]
 
