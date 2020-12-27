@@ -422,6 +422,7 @@ class AccountsMutation(graphene.ObjectType):
 
 
 class AccountsQuery(graphene.ObjectType):
+    get_association_by_slug = graphene.Field(AssociationType, slug=graphene.String(required=True))
     get_all_association_object_permissions = graphene.List(
         ModelsPermissionType)
     get_all_association_group_object_permissions = graphene.List(
@@ -431,6 +432,9 @@ class AccountsQuery(graphene.ObjectType):
     get_all_association_group_member_object_permissions = graphene.List(
         ModelsPermissionType)
 
+    def resolve_get_association_by_slug(root, info, slug):
+        return Association.objects.get(slug=slug)
+        
     def resolve_get_all_association_object_permissions(root, info):
         content_type = ContentType.objects.get_for_model(Association)
         return Permission.objects.filter(content_type=content_type)
