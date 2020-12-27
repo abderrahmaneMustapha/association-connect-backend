@@ -153,6 +153,8 @@ class AssociationCreationMutation(graphene.Mutation):
             association_type=association_type,
             association_min_max_numbers=association_min_max_numbers)
 
+        association.slugify_()
+        association.save()
         user = info.context.user
         user.is_association_owner = True
         user.save()
@@ -189,7 +191,9 @@ class AssociationCreationNoRegisterMutation(graphene.Mutation):
             email = email,
             name=name,
             association_type=association_type)
-
+        
+        association.slugify_()
+        association.save()
         user = info.context.user
         user.is_association_owner = True
         user.phone =  phone

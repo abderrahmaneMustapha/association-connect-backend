@@ -136,7 +136,7 @@ class AccountsMutationsTestCase(TestCase):
                 }""" % (self.association_type.id)
 
         response = client.execute(query)
-        print(response)
+    
         assert 'errors' not in response
 
         member_exists = Member.objects.filter(user=self.user).exists()
