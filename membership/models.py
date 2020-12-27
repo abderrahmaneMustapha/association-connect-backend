@@ -7,7 +7,7 @@ class Form(models.Model):
     title =  models.CharField(_("form title"), max_length=125 )
     description = models.TextField(_("form description"),max_length=250)
     email = models.EmailField(_("form email"), max_length = 254)
-    photo = models.ImageField(_("form image"),upload_to='associations/forms', null=True)
+    photo = models.ImageField(_("form image"),upload_to='associations/forms', blank=True ,null=True)
     phone_number = PhoneNumberField(_("phone number"), null=True)
     link = models.URLField(_("website link"),null=True)
     start_date = models.DateField(_("day when form is gonna be available"))
