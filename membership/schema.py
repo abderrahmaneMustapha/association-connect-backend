@@ -1,7 +1,7 @@
 from graphene_django import DjangoObjectType
 import graphene
 from .models import Form, Association, Costs, UserPayedCosts, BaseUser, Field, FieldType, FieldData, FormFilledByUser
-
+from graphene_file_upload.scalars import Upload
 
 class FormMetaType(DjangoObjectType):
     class Meta:
@@ -53,19 +53,25 @@ class FormMetaAddMutation(graphene.Mutation):
         title = graphene.String()
         description = graphene.String()
         email = graphene.String()
+        phone = graphene.String()
+        image = Upload()
+        link = graphene.String()
         start_date = graphene.Date()
         days = graphene.Int()
 
     form = graphene.Field(FormMetaType)
     success = graphene.Boolean()
 
-    def mutate(root, info, association, title, description, email, start_date,
-               days):
+    def mutate(root, info, association, title, description, email, phone, link, start_date,
+               days, image=None):
         _association = Association.objects.get(id=association)
         _form = Form.objects.create(association=_association,
                                     title=title,
                                     description=description,
-                                    email=email,
+                                    email=email, 
+                                    photo=image,
+                                    phone_number=phone,
+                                    link=link,
                                     start_date=start_date,
                                     days=days)
         _form.full_clean()
