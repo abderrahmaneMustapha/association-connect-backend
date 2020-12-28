@@ -115,9 +115,10 @@ class MembershipMutationsTestCase(TestCase):
                     form{{id,title}},
                     success
                     }}
-                }}''').strip("\n").format(self.association.id, 55, "azazeazeazeaze",
-                        "abdou@mail.com", date.today(), "New form",
-                        "+213780195168")
+                }}''').strip("\n").format(self.association.id, 55,
+                                          "azazeazeazeaze", "abdou@mail.com",
+                                          date.today(), "New form",
+                                          "+213780195168")
 
         response = client.execute(query)
 
@@ -138,8 +139,15 @@ class MembershipMutationsTestCase(TestCase):
                     form{id,title, email},
                     success
                     }
-                }""" % (self.association.id, 55, "azazeazeazeaze", "abdoumail",
-                        date.today(), "New form", "+213780195168", )
+                }""" % (
+            self.association.id,
+            55,
+            "azazeazeazeaze",
+            "abdoumail",
+            date.today(),
+            "New form",
+            "+213780195168",
+        )
 
         response = client.execute(query)
         assert "{'email': ['Enter a valid email address.']}" in response[
@@ -149,8 +157,9 @@ class MembershipMutationsTestCase(TestCase):
         client = Client(schema)
 
         query = """mutation{
-            addCostToForm(form:%s, amount:%s, description:\"%s\", 
-                membershipTime:\"%s\", showInForm:true){
+            addCostsToForm(inputs : [{form:%s, amount:%s, description:\"%s\", 
+                membershipTime:\"%s\", showInForm:true}, {form:%s, amount:%s, description:\"%s\", 
+                membershipTime:\"%s\", showInForm:true}]){
                 cost{id, description}
                 success
             }
@@ -158,6 +167,7 @@ class MembershipMutationsTestCase(TestCase):
                 timedelta(days=-1, seconds=68400))
 
         response = client.execute(query)
+        print(response)
         assert 'errors' not in response
 
     def test_add_membership_cost_payed_mutation(self):
