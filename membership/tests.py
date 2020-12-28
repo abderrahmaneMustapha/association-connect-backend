@@ -152,8 +152,20 @@ class MembershipMutationsTestCase(TestCase):
         response = client.execute(query)
         assert "{'email': ['Enter a valid email address.']}" in response[
             'errors'][0]['message']
-
     def test_add_membership_cost_mutation(self):
+        client = Client(schema)
+        query = """mutation{
+            addCostsToForm(inputs : {form:%s, amount:%s, description:\"%s\", 
+                membershipTime:\"%s\", showInForm:true}){
+                cost{id, description}
+                success
+            }
+        }""" % (self.form.id, 234, "azazeazeazeaze",
+                timedelta(days=-1, seconds=68400))
+
+        response = client.execute(query)
+        assert 'errors' not in response
+    def test_add_membership_costs_mutation(self):
         client = Client(schema)
 
         query = """mutation{
@@ -164,10 +176,10 @@ class MembershipMutationsTestCase(TestCase):
                 success
             }
         }""" % (self.form.id, 234, "azazeazeazeaze",
-                timedelta(days=-1, seconds=68400))
+                timedelta(days=-1, seconds=68400), self.form.id, 264, "azeazeazeaze",
+                timedelta(days=-1, seconds=68900))
 
         response = client.execute(query)
-        print(response)
         assert 'errors' not in response
 
     def test_add_membership_cost_payed_mutation(self):
@@ -189,12 +201,37 @@ class MembershipMutationsTestCase(TestCase):
         label = "field"
         placeholder = "please add field"
         query = """mutation{
-            addFieldToForm(description:\"%s\", form:%s, label:\"%s\", placeholder:\"%s\", 
-            required:true, showInForm:true, type:%s){
+            addFieldToForm(inputs : {description:\"%s\", form:%s, label:\"%s\", placeholder:\"%s\", 
+            required:true, showInForm:true, type:%s}){
                 field{id, label},
                 success
             }
         }""" % (description, self.form.id, label, placeholder,
+                self.field_type.id)
+
+        response = client.execute(query)
+    
+        assert 'errors' not in response
+
+    def test_add_fields_to_form_mutation(self):
+        client = Client(schema)
+
+        description = "this is my field description"
+        label = "field"
+        placeholder = "please add field"
+        query = """mutation{
+            addFieldsToForm(inputs: [
+                {description:\"%s\", form:%s, label:\"%s\", placeholder:\"%s\", 
+                required:true, showInForm:true, type:%s}, 
+
+                {description:\"%s\", form:%s, label:\"%s\", placeholder:\"%s\", 
+                required:true, showInForm:true, type:%s}
+            ]){
+                field{id, label},
+                success
+            }
+        }""" % (description, self.form.id, label, placeholder,
+                self.field_type.id, description, self.form.id, label, placeholder,
                 self.field_type.id)
 
         response = client.execute(query)
