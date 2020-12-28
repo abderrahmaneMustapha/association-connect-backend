@@ -185,9 +185,9 @@ class FormFilledByUserMutation(graphene.Mutation):
 #global query and mutations
 class MembershipMutation(graphene.ObjectType):
     add_form_meta = FormMetaAddMutation.Field()
-    add_costs_to_form = AddCostMutation.List()
+    add_costs_to_form = AddCostMutation.Field()
     add_user_payed_costs = AddUserPayedCostMutation.Field()
-    add_fields_to_form = AddFormFieldMutation.List()
+    add_fields_to_form = AddFormFieldMutation.Filed()
     add_data_to_field = AddFieldData.Field()
     form_filled  = FormFilledByUserMutation.Field()
 
