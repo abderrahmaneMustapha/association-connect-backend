@@ -187,7 +187,7 @@ class MembershipMutation(graphene.ObjectType):
     add_form_meta = FormMetaAddMutation.Field()
     add_cost_to_form = AddCostMutation.Field()
     add_user_payed_costs = AddUserPayedCostMutation.Field()
-    add_field_to_form = AddFormFieldMutation.Field()
+    add_fields_to_form = AddFormFieldMutation.List()
     add_data_to_field = AddFieldData.Field()
     form_filled  = FormFilledByUserMutation.Field()
 
