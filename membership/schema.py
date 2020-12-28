@@ -57,6 +57,14 @@ class FormCostsInputs(graphene.InputObjectType):
     membership_time = graphene.String()
     show_in_form = graphene.Boolean()
 
+class FormFieldsInputs(graphene.InputObjectType):
+    form = graphene.ID()
+    label = graphene.String()
+    description = graphene.String()
+    placeholder = graphene.String()
+    show_in_form = graphene.Boolean()
+    required = graphene.Boolean()
+    type = graphene.ID()
 #mutations
 
 
@@ -107,13 +115,13 @@ class AddCostsMutation(graphene.Mutation):
                                         amount=_input.amount,
                                         membership_time=_input.membership_time,
                                         show_in_form=_input.show_in_form)
-        cost.full_clean()
+            cost.full_clean()
         success = True
         return AddCostsMutation(cost=cost, success=success)
 
 class AddCostMutation(graphene.Mutation):
     class Arguments:
-        inputs = graphene.Field( FormCostsInputs)
+        inputs =  FormCostsInputs(required=True)
 
     cost = graphene.Field(CostType)
     success = graphene.Boolean()
@@ -147,29 +155,45 @@ class AddUserPayedCostMutation(graphene.Mutation):
         return AddUserPayedCostMutation(cost=user_payed_cost, success=success)
 
 
-class AddFormFieldMutation(graphene.Mutation):
+class AddFormFieldsMutation(graphene.Mutation):
     class Arguments:
-        form = graphene.ID()
-        label = graphene.String()
-        description = graphene.String()
-        placeholder = graphene.String()
-        show_in_form = graphene.Boolean()
-        required = graphene.Boolean()
-        type = graphene.ID()
+        inputs = graphene.List(FormFieldsInputs)
 
     field = graphene.Field(FormFieldType)
     success = graphene.Boolean()
 
-    def mutate(root, info, form, label, description, placeholder, show_in_form,
-               required, type):
-        _form = Form.objects.get(pk=form)
-        _field_type = FieldType.objects.get(id=type)
+    def mutate(root, info, inputs):
+        for _input in inputs:
+            _form = Form.objects.get(pk= _input.form)
+            _field_type = FieldType.objects.get(id=_input.type)
+            _field = Field.objects.create(form=_form,
+                                        label=_input.label,
+                                        description=_input.description,
+                                        placeholder=_input.placeholder,
+                                        show_in_form=_input.show_in_form,
+                                        required=_input.required,
+                                        type=_field_type)
+            _field.full_clean()
+        success  = True
+
+        return AddFormFieldMutation(field=_field, success=success)
+
+class AddFormFieldMutation(graphene.Mutation):
+    class Arguments:
+       inputs = FormFieldsInputs(True)
+
+    field = graphene.Field(FormFieldType)
+    success = graphene.Boolean()
+
+    def mutate(root,info, inputs):
+        _form = Form.objects.get(pk=inputs.form)
+        _field_type = FieldType.objects.get(id=inputs.type)
         _field = Field.objects.create(form=_form,
-                                      label=label,
-                                      description=description,
-                                      placeholder=placeholder,
-                                      show_in_form=show_in_form,
-                                      required=required,
+                                      label=inputs.label,
+                                      description=inputs.description,
+                                      placeholder=inputs.placeholder,
+                                      show_in_form=inputs.show_in_form,
+                                      required=inputs.required,
                                       type=_field_type)
         _field.full_clean()
         success  = True
@@ -215,7 +239,8 @@ class MembershipMutation(graphene.ObjectType):
     add_costs_to_form = AddCostsMutation.Field()
     add_cost_to_form = AddCostMutation.Field()
     add_user_payed_costs = AddUserPayedCostMutation.Field()
-    add_fields_to_form = AddFormFieldMutation.Field()
+    add_fields_to_form = AddFormFieldsMutation.Field()
+    add_field_to_form = AddFormFieldMutation.Field()
     add_data_to_field = AddFieldData.Field()
     form_filled  = FormFilledByUserMutation.Field()
 
