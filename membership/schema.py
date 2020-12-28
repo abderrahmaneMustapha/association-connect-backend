@@ -50,7 +50,7 @@ class FormFilledType(DjangoObjectType):
 
 
 #inputs
-class FormFieldsInputs(graphene.InputObjectType):
+class FormCostsInputs(graphene.InputObjectType):
     form = graphene.ID()
     description = graphene.String()
     amount = graphene.Float()
@@ -94,18 +94,19 @@ class FormMetaAddMutation(graphene.Mutation):
 
 class AddCostMutation(graphene.Mutation):
     class Arguments:
-        inputs = graphene.List(FormFieldsInputs(required=True))
+        inputs = graphene.List( FormCostsInputs)
 
     cost = graphene.Field(CostType)
     success = graphene.Boolean()
 
-    def mutate(root,inputs):
-        _form = Form.objects.get(id=inputs.form)
-        cost = Costs.objects.create(form=_form,
-                                    description=inputs.description,
-                                    amount=inputs.amount,
-                                    membership_time=inputs.membership_time,
-                                    show_in_form=inputs.show_in_form)
+    def mutate(root,info , inputs):
+        for _input in inputs:
+            _form = Form.objects.get(id=inputs.form)
+            cost = Costs.objects.create(form=_form,
+                                        description=inputs.description,
+                                        amount=inputs.amount,
+                                        membership_time=inputs.membership_time,
+                                        show_in_form=inputs.show_in_form)
         cost.full_clean()
         success = True
         return AddCostMutation(cost=cost, success=success)
@@ -195,7 +196,7 @@ class MembershipMutation(graphene.ObjectType):
     add_form_meta = FormMetaAddMutation.Field()
     add_costs_to_form = AddCostMutation.Field()
     add_user_payed_costs = AddUserPayedCostMutation.Field()
-    add_fields_to_form = AddFormFieldMutation.Filed()
+    add_fields_to_form = AddFormFieldMutation.Field()
     add_data_to_field = AddFieldData.Field()
     form_filled  = FormFilledByUserMutation.Field()
 
