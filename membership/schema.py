@@ -92,7 +92,7 @@ class FormMetaAddMutation(graphene.Mutation):
         return FormMetaAddMutation(form=_form, success=success)
 
 
-class AddCostMutation(graphene.Mutation):
+class AddCostsMutation(graphene.Mutation):
     class Arguments:
         inputs = graphene.List( FormCostsInputs)
 
@@ -101,16 +101,34 @@ class AddCostMutation(graphene.Mutation):
 
     def mutate(root,info , inputs):
         for _input in inputs:
-            _form = Form.objects.get(id=inputs.form)
+            _form = Form.objects.get(id=_input.form)
             cost = Costs.objects.create(form=_form,
-                                        description=inputs.description,
-                                        amount=inputs.amount,
-                                        membership_time=inputs.membership_time,
-                                        show_in_form=inputs.show_in_form)
+                                        description=_input.description,
+                                        amount=_input.amount,
+                                        membership_time=_input.membership_time,
+                                        show_in_form=_input.show_in_form)
         cost.full_clean()
         success = True
-        return AddCostMutation(cost=cost, success=success)
+        return AddCostsMutation(cost=cost, success=success)
 
+class AddCostMutation(graphene.Mutation):
+    class Arguments:
+        inputs = graphene.Field( FormCostsInputs)
+
+    cost = graphene.Field(CostType)
+    success = graphene.Boolean()
+
+    def mutate(root,info , inputs):
+      
+        _form = Form.objects.get(id=inputs.form)
+        cost = Costs.objects.create(form=_form,
+                                    description=inputs.description,
+                                    amount=inputs.amount,
+                                    membership_time=inputs.membership_time,
+                                    show_in_form=inputs.show_in_form)
+        cost.full_clean()
+        success = True
+        return AddCostsMutation(cost=cost, success=success)
 
 class AddUserPayedCostMutation(graphene.Mutation):
     class Arguments:
@@ -194,7 +212,8 @@ class FormFilledByUserMutation(graphene.Mutation):
 #global query and mutations
 class MembershipMutation(graphene.ObjectType):
     add_form_meta = FormMetaAddMutation.Field()
-    add_costs_to_form = AddCostMutation.Field()
+    add_costs_to_form = AddCostsMutation.Field()
+    add_cost_to_form = AddCostMutation.Field()
     add_user_payed_costs = AddUserPayedCostMutation.Field()
     add_fields_to_form = AddFormFieldMutation.Field()
     add_data_to_field = AddFieldData.Field()
