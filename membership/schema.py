@@ -3,6 +3,8 @@ import graphene
 from .models import Form, Association, Costs, UserPayedCosts, BaseUser, Field, FieldType, FieldData, FormFilledByUser
 from graphene_file_upload.scalars import Upload
 
+
+# object types
 class FormMetaType(DjangoObjectType):
     class Meta:
         model = Form
@@ -40,10 +42,21 @@ class FieldDataType(DjangoObjectType):
         model = FieldData
         fields = ['id', 'field', 'user', 'data']
 
+
 class FormFilledType(DjangoObjectType):
     class Meta:
         model = FormFilledByUser
         fields = [ 'user_payed_cost']
+
+
+#inputs
+class FormFieldsInputs(graphene.InputObjectType):
+    form = graphene.ID()
+    description = graphene.String()
+    amount = graphene.Float()
+    membership_time = graphene.String()
+    show_in_form = graphene.Boolean()
+
 #mutations
 
 
@@ -81,23 +94,18 @@ class FormMetaAddMutation(graphene.Mutation):
 
 class AddCostMutation(graphene.Mutation):
     class Arguments:
-        form = graphene.ID()
-        description = graphene.String()
-        amount = graphene.Float()
-        membership_time = graphene.String()
-        show_in_form = graphene.Boolean()
+        inputs = graphene.List(FormFieldsInputs(required=True))
 
     cost = graphene.Field(CostType)
     success = graphene.Boolean()
 
-    def mutate(root, info, form, description, amount, membership_time,
-               show_in_form):
-        _form = Form.objects.get(id=form)
+    def mutate(root,inputs):
+        _form = Form.objects.get(id=inputs.form)
         cost = Costs.objects.create(form=_form,
-                                    description=description,
-                                    amount=amount,
-                                    membership_time=membership_time,
-                                    show_in_form=show_in_form)
+                                    description=inputs.description,
+                                    amount=inputs.amount,
+                                    membership_time=inputs.membership_time,
+                                    show_in_form=inputs.show_in_form)
         cost.full_clean()
         success = True
         return AddCostMutation(cost=cost, success=success)
