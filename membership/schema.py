@@ -247,6 +247,7 @@ class MembershipMutation(graphene.ObjectType):
 
 class MembershipQuery(graphene.ObjectType):
     get_form_meta = graphene.Field(FormMetaType, id=graphene.ID())
+    get_form_by_association_slug = graphene.Field(FormMetaType, slug=graphene.String())
     get_form_showed_fields = graphene.List(FormFieldType, form_id = graphene.ID())
     get_form_showed_fields_data = graphene.List(FieldDataType, form_id= graphene.ID())
     get_form_all_fields = graphene.List(FormFieldType, form_id = graphene.ID())
@@ -254,7 +255,8 @@ class MembershipQuery(graphene.ObjectType):
 
     def resolve_get_form_meta(root, info, id):
         return Form.objects.get(id=id)
-    
+    def resolve_get_form_by_association_slug(root, info, slug):
+        return Form.objects.filter(association__slug=slug).first()
     def resolve_get_form_showed_fields(root, info, form_id):
         return Field.objects.filter(form__id=form_id, show_in_form=True)
 
