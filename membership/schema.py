@@ -186,7 +186,7 @@ class AddFormFieldMutation(graphene.Mutation):
     success = graphene.Boolean()
 
     def mutate(root,info, inputs):
-        _form = Form.objects.get(pk=inputs.form)
+        _form = Form.objects.get(assciation__slug= inputs.assciation_slug)
         _field_type = FieldType.objects.get(id=inputs.type)
         _field = Field.objects.create(form=_form,
                                       label=inputs.label,
