@@ -33,6 +33,10 @@ class UserPayedCosts(models.Model):
 
 class FieldType(models.Model):
     name  = models.CharField("field name", max_length=125)
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True)
+
+
 
 
 class Field(models.Model):
