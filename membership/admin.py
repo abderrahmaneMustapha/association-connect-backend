@@ -1,3 +1,8 @@
 from django.contrib import admin
+from .models import *
 
-# Register your models here.
+
+@admin.register(Form, Costs, UserPayedCosts, FieldType, Field, FieldData,
+                FormFilledByUser)
+class MembershipAdmin(admin.ModelAdmin):
+    pass
