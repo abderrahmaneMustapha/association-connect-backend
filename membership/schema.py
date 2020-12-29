@@ -64,7 +64,7 @@ class FormFieldsInputs(graphene.InputObjectType):
     placeholder = graphene.String()
     show_in_form = graphene.Boolean()
     required = graphene.Boolean()
-    type = graphene.ID()
+    type = graphene.String()
 #mutations
 
 
@@ -165,7 +165,7 @@ class AddFormFieldsMutation(graphene.Mutation):
     def mutate(root, info, inputs):
         for _input in inputs:
             _form = Form.objects.filter(association__slug= _input.association_slug).first()
-            _field_type = FieldType.objects.get(id=_input.type)
+            _field_type = FieldType.objects.get(name=_input.type)
             _field = Field.objects.create(form=_form,
                                         label=_input.label,
                                         description=_input.description,
@@ -187,7 +187,7 @@ class AddFormFieldMutation(graphene.Mutation):
 
     def mutate(root,info, inputs):
         _form = Form.objects.filter(association__slug= inputs.association_slug).first()
-        _field_type = FieldType.objects.get(id=inputs.type)
+        _field_type = FieldType.objects.get(name=inputs.type)
         _field = Field.objects.create(form=_form,
                                       label=inputs.label,
                                       description=inputs.description,
