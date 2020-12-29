@@ -206,12 +206,12 @@ class MembershipMutationsTestCase(TestCase):
         placeholder = "please add field"
         query = """mutation{
             addFieldToForm(inputs : {description:\"%s\", associationSlug:\"%s\", label:\"%s\", placeholder:\"%s\", 
-            required:true, showInForm:true, type:%s}){
+            required:true, showInForm:true, type:\"%s\"}){
                 field{id, label},
                 success
             }
         }""" % (description, self.form.association.slug, label, placeholder,
-                self.field_type.id)
+                self.field_type.name)
 
         response = client.execute(query)
 
@@ -226,17 +226,17 @@ class MembershipMutationsTestCase(TestCase):
         query = """mutation{
             addFieldsToForm(inputs: [
                 {description:\"%s\", associationSlug:\"%s\", label:\"%s\", placeholder:\"%s\", 
-                required:true, showInForm:true, type:%s}, 
+                required:true, showInForm:true, type:\"%s\"}, 
 
                 {description:\"%s\", associationSlug:\"%s\", label:\"%s\", placeholder:\"%s\", 
-                required:true, showInForm:true, type:%s}
+                required:true, showInForm:true, type:\"%s\"}
             ]){
                 field{id, label},
                 success
             }
         }""" % (description, self.form.association.slug, label, placeholder,
-                self.field_type.id, description, self.form.association.slug, label,
-                placeholder, self.field_type.id)
+                self.field_type.name, description, self.form.association.slug, label,
+                placeholder, self.field_type.name)
 
         response = client.execute(query)
         print("=============", response)
