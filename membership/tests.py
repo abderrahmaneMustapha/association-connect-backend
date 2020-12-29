@@ -36,6 +36,8 @@ class MembershipMutationsTestCase(TestCase):
             description="we are dz algeria a perfect organizatoin",
             association_min_max_numbers=cls.association_min_max_numbers,
             association_type=cls.association_type)
+        cls.association.slugify_()
+        cls.association.save()
 
         cls.form = Form.objects.create(
             association=cls.association,
@@ -152,6 +154,7 @@ class MembershipMutationsTestCase(TestCase):
         response = client.execute(query)
         assert "{'email': ['Enter a valid email address.']}" in response[
             'errors'][0]['message']
+
     def test_add_membership_cost_mutation(self):
         client = Client(schema)
         query = """mutation{
@@ -165,6 +168,7 @@ class MembershipMutationsTestCase(TestCase):
 
         response = client.execute(query)
         assert 'errors' not in response
+
     def test_add_membership_costs_mutation(self):
         client = Client(schema)
 
@@ -176,8 +180,8 @@ class MembershipMutationsTestCase(TestCase):
                 success
             }
         }""" % (self.form.id, 234, "azazeazeazeaze",
-                timedelta(days=-1, seconds=68400), self.form.id, 264, "azeazeazeaze",
-                timedelta(days=-1, seconds=68900))
+                timedelta(days=-1, seconds=68400), self.form.id, 264,
+                "azeazeazeaze", timedelta(days=-1, seconds=68900))
 
         response = client.execute(query)
         assert 'errors' not in response
@@ -201,16 +205,16 @@ class MembershipMutationsTestCase(TestCase):
         label = "field"
         placeholder = "please add field"
         query = """mutation{
-            addFieldToForm(inputs : {description:\"%s\", form:%s, label:\"%s\", placeholder:\"%s\", 
+            addFieldToForm(inputs : {description:\"%s\", associationSlug:\"%s\", label:\"%s\", placeholder:\"%s\", 
             required:true, showInForm:true, type:%s}){
                 field{id, label},
                 success
             }
-        }""" % (description, self.form.id, label, placeholder,
+        }""" % (description, self.form.association.slug, label, placeholder,
                 self.field_type.id)
 
         response = client.execute(query)
-    
+
         assert 'errors' not in response
 
     def test_add_fields_to_form_mutation(self):
@@ -221,20 +225,21 @@ class MembershipMutationsTestCase(TestCase):
         placeholder = "please add field"
         query = """mutation{
             addFieldsToForm(inputs: [
-                {description:\"%s\", form:%s, label:\"%s\", placeholder:\"%s\", 
+                {description:\"%s\", associationSlug:\"%s\", label:\"%s\", placeholder:\"%s\", 
                 required:true, showInForm:true, type:%s}, 
 
-                {description:\"%s\", form:%s, label:\"%s\", placeholder:\"%s\", 
+                {description:\"%s\", associationSlug:\"%s\", label:\"%s\", placeholder:\"%s\", 
                 required:true, showInForm:true, type:%s}
             ]){
                 field{id, label},
                 success
             }
-        }""" % (description, self.form.id, label, placeholder,
-                self.field_type.id, description, self.form.id, label, placeholder,
-                self.field_type.id)
+        }""" % (description, self.form.association.slug, label, placeholder,
+                self.field_type.id, description, self.form.association.slug, label,
+                placeholder, self.field_type.id)
 
         response = client.execute(query)
+        print("=============", response)
         assert 'errors' not in response
 
     def test_add_field_data_to_form_mutation(self):
