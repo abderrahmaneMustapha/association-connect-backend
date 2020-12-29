@@ -58,7 +58,7 @@ class FormCostsInputs(graphene.InputObjectType):
     show_in_form = graphene.Boolean()
 
 class FormFieldsInputs(graphene.InputObjectType):
-    form = graphene.ID()
+    assciation_slug = graphene.String()
     label = graphene.String()
     description = graphene.String()
     placeholder = graphene.String()
@@ -164,7 +164,7 @@ class AddFormFieldsMutation(graphene.Mutation):
 
     def mutate(root, info, inputs):
         for _input in inputs:
-            _form = Form.objects.get(pk= _input.form)
+            _form = Form.objects.get(assciation__slug= _input.assciation_slug)
             _field_type = FieldType.objects.get(id=_input.type)
             _field = Field.objects.create(form=_form,
                                         label=_input.label,
