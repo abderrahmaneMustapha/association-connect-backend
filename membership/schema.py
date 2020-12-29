@@ -51,7 +51,7 @@ class FormFilledType(DjangoObjectType):
 
 #inputs
 class FormCostsInputs(graphene.InputObjectType):
-    form = graphene.ID()
+    association_slug = graphene.String()
     description = graphene.String()
     amount = graphene.Float()
     membership_time = graphene.String()
@@ -102,14 +102,15 @@ class FormMetaAddMutation(graphene.Mutation):
 
 class AddCostsMutation(graphene.Mutation):
     class Arguments:
-        inputs = graphene.List( FormCostsInputs)
+        inputs = graphene.List(FormCostsInputs)
 
     cost = graphene.Field(CostType)
     success = graphene.Boolean()
 
     def mutate(root,info , inputs):
+        _form = Form.objects.filter(association__slug=inputs[0].association_slug).first()
+        Costs.objects.filter(form=_form).delete()
         for _input in inputs:
-            _form = Form.objects.get(id=_input.form)
             cost = Costs.objects.create(form=_form,
                                         description=_input.description,
                                         amount=_input.amount,
@@ -127,8 +128,9 @@ class AddCostMutation(graphene.Mutation):
     success = graphene.Boolean()
 
     def mutate(root,info , inputs):
-      
-        _form = Form.objects.get(id=inputs.form)
+        
+        _form = Form.objects.filter(id=inputs.association_slug).first()
+        Costs.objects.filter(form=_form).delete()
         cost = Costs.objects.create(form=_form,
                                     description=inputs.description,
                                     amount=inputs.amount,
