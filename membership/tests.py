@@ -101,7 +101,7 @@ class MembershipMutationsTestCase(TestCase):
                                    content=small_gif,
                                    content_type='image/jpeg')
 
-        print(image.file)
+    
         query = textwrap.dedent('''mutation{{
                     addFormMeta(association:{0}, 
                     days:{1}, 
@@ -158,12 +158,12 @@ class MembershipMutationsTestCase(TestCase):
     def test_add_membership_cost_mutation(self):
         client = Client(schema)
         query = """mutation{
-            addCostsToForm(inputs : {form:%s, amount:%s, description:\"%s\", 
+            addCostsToForm(inputs : {associationSlug:\"%s\", amount:%s, description:\"%s\", 
                 membershipTime:\"%s\", showInForm:true}){
                 cost{id, description}
                 success
             }
-        }""" % (self.form.id, 234, "azazeazeazeaze",
+        }""" % (self.form.association.slug, 234, "azazeazeazeaze",
                 timedelta(days=-1, seconds=68400))
 
         response = client.execute(query)
@@ -173,14 +173,14 @@ class MembershipMutationsTestCase(TestCase):
         client = Client(schema)
 
         query = """mutation{
-            addCostsToForm(inputs : [{form:%s, amount:%s, description:\"%s\", 
-                membershipTime:\"%s\", showInForm:true}, {form:%s, amount:%s, description:\"%s\", 
+            addCostsToForm(inputs : [{associationSlug:\"%s\", amount:%s, description:\"%s\", 
+                membershipTime:\"%s\", showInForm:true}, {associationSlug:\"%s\", amount:%s, description:\"%s\", 
                 membershipTime:\"%s\", showInForm:true}]){
                 cost{id, description}
                 success
             }
-        }""" % (self.form.id, 234, "azazeazeazeaze",
-                timedelta(days=-1, seconds=68400), self.form.id, 264,
+        }""" % (self.form.association.slug, 234, "azazeazeazeaze",
+                timedelta(days=-1, seconds=68400), self.form.association.slug, 264,
                 "azeazeazeaze", timedelta(days=-1, seconds=68900))
 
         response = client.execute(query)
@@ -239,7 +239,7 @@ class MembershipMutationsTestCase(TestCase):
                 placeholder, self.field_type.name)
 
         response = client.execute(query)
-        print("=============", response)
+        
         assert 'errors' not in response
 
     def test_add_field_data_to_form_mutation(self):
