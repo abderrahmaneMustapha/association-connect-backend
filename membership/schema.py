@@ -274,9 +274,9 @@ class MembershipQuery(graphene.ObjectType):
         return FieldData.objects.filter(form__id=form_id, show_in_form=True)
     
 
-
     def resolve_get_form_all_fields_data(root, info, form_id):
         return FieldData.objects.filter(form__id=form_id, field__show_in_form=True)
 
+
     def resolve_get_form_all_costs(root, info, slug):
-        return Costs.objects.filter(form__associaion__slug=slug)
+        return Costs.objects.filter(form__association__slug=slug)
