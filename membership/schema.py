@@ -253,23 +253,30 @@ class MembershipMutation(graphene.ObjectType):
 class MembershipQuery(graphene.ObjectType):
     get_form_meta = graphene.Field(FormMetaType, id=graphene.ID())
     get_form_by_association_slug = graphene.Field(FormMetaType, slug=graphene.String())
-    get_form_showed_fields = graphene.List(FormFieldType, form_id = graphene.ID())
-    get_form_showed_fields_data = graphene.List(FieldDataType, form_id= graphene.ID())
-    get_form_all_fields = graphene.List(FormFieldType, form_id = graphene.ID())
+    get_form_showed_fields = graphene.List(FormFieldType, slug = graphene.String())    
+    get_form_all_fields = graphene.List(FormFieldType, slug  =  graphene.String())
+
     get_form_all_fields_data = graphene.List(FieldDataType, form_id= graphene.ID())
+    get_form_showed_fields_data = graphene.List(FieldDataType,slug =  graphene.String())
+
+    get_form_all_costs = graphene.List(CostType, slug  =  graphene.String())
 
     def resolve_get_form_meta(root, info, id):
         return Form.objects.get(id=id)
     def resolve_get_form_by_association_slug(root, info, slug):
         return Form.objects.filter(association__slug=slug).first()
-    def resolve_get_form_showed_fields(root, info, form_id):
-        return Field.objects.filter(form__id=form_id, show_in_form=True)
+    def resolve_get_form_showed_fields(root, info, slug):
+        return Form.objects.filter(association__slug=slug,  show_in_form=True)
+    def resolve_get_form_all_fields(root, info, slug):
+        return Form.objects.filter(association__slug=slug)
 
     def resolve_get_form_showed_fields_data(root, info, form_id):
         return FieldData.objects.filter(form__id=form_id, show_in_form=True)
     
-    def resolve_get_form_all_fields(root, info, form_id):
-        return Field.objects.filter(form__id=form_id, show_in_form=True)
+
 
     def resolve_get_form_all_fields_data(root, info, form_id):
         return FieldData.objects.filter(form__id=form_id, field__show_in_form=True)
+
+    def resolve_get_form_all_costs(root, info, slug):
+        return Costs.objects.filter(form__associaion__slug=slug)
