@@ -19,7 +19,7 @@ class Costs(models.Model):
     form = models.ForeignKey(Form, verbose_name=_("cost form"), on_delete=models.CASCADE)
     description = models.TextField(_("payment description"), max_length=225)
     amount  = models.FloatField(_("amount must be payed"), )    
-    #membership_time = models.IntegerField(_("membership time when a user pay this amount"), null=True, blank=False)
+    membership_time = models.IntegerField(_("membership time when a user pay this amount"), null=True, blank=False)
     show_in_form  = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)
