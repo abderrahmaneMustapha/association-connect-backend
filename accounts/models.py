@@ -129,7 +129,7 @@ class Member (models.Model):
 
 class AssociationMembership(models.Model):
     member = models.ForeignKey(Member, verbose_name=_("member"), on_delete=models.CASCADE)
-    membership_time = models.DurationField(_("membership time "))
+    membership_time = models.IntegerField(_("membership time "))
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
