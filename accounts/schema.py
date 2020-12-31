@@ -158,10 +158,10 @@ class AssociationCreationMutation(graphene.Mutation):
             association_type=association_type,
             association_min_max_numbers=association_min_max_numbers)
 
-        association.full_clean()
-
         association.slugify_()
+        association.full_clean()
         association.save()
+      
         user = info.context.user
         user.is_association_owner = True
         user.save()
