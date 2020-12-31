@@ -58,14 +58,6 @@ class AccountsMutationsTestCase(TestCase):
         cls.req = RequestFactory().get('/')
         cls.req.user = cls.user
 
-    def test_add_member(self):
-        client = Client(schema, context_value=self.req)
-
-        query = "mutation { addMember(association: %s ){success,member{association{name}},}}" % (
-            self.association.id)
-        response = client.execute(query)
-
-        assert 'errors' not in response
 
     def test_add_member_by_admin(self):
         client = Client(schema, context_value=self.req)

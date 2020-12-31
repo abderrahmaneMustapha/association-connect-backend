@@ -1,14 +1,13 @@
 from graphene_django import DjangoObjectType
+import graphene
+from graphql import GraphQLError
+from django.contrib.auth.models import Permission
+from django.contrib.contenttypes.models import ContentType
+from guardian.shortcuts import assign_perm, remove_perm
+
 from .models import (BaseUser, Member, Association, AssociationGroup,
                      AssociationGroupMember, AssociationType as
                      AssociationTypeModel, ExpectedAssociationMembersNumber)
-
-import graphene
-
-from django.contrib.auth.models import Permission
-from django.contrib.contenttypes.models import ContentType
-
-from guardian.shortcuts import assign_perm, remove_perm
 
 
 #types
@@ -58,21 +57,7 @@ class AssociationGroupMemberType(DjangoObjectType):
 
 
 # mutations
-class MemberAddMutation(graphene.Mutation):
-    class Arguments:
 
-        association = graphene.ID()
-
-    success = graphene.Boolean()
-    member = graphene.Field(MemberType)
-
-    def mutate(root, info, association):
-        association = Association.objects.get(id=association)
-
-        member = Member.objects.create(association=association,
-                                       user=info.context.user)
-        success = True
-        return MemberAddMutation(member=member, success=success)
 
 
 class MemberAddByAdminMutation(graphene.Mutation):
@@ -400,7 +385,6 @@ class OwnerRemoveGroupPermissionsToMembers(graphene.Mutation):
 
 # end mutations
 class AccountsMutation(graphene.ObjectType):
-    add_member = MemberAddMutation.Field()
     add_memeber_by_admin = MemberAddByAdminMutation.Field()
     delete_member = MemberDeleteMutation.Field()
     archive_member = MemberArchiveMutation.Field()
