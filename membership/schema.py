@@ -1,7 +1,11 @@
 from graphene_django import DjangoObjectType
-import graphene
-from .models import Form, Association, Costs, UserPayedCosts, BaseUser, Field, FieldType, FieldData, FormFilledByUser
 from graphene_file_upload.scalars import Upload
+from django.core.exceptions import ValidationError
+import graphene
+
+from accounts.schema import BaseUserType
+from .models import Form, Association, Costs, UserPayedCosts, BaseUser, Field, FieldType, FieldData, FormFilledByUser
+from .forms import FormCreationForm
 
 
 # object types
@@ -37,6 +41,7 @@ class FormFieldType(DjangoObjectType):
             'required', 'type'
         ]
 
+
 class FieldDataType(DjangoObjectType):
     class Meta:
         model = FieldData
@@ -46,7 +51,7 @@ class FieldDataType(DjangoObjectType):
 class FormFilledType(DjangoObjectType):
     class Meta:
         model = FormFilledByUser
-        fields = [ 'user_payed_cost']
+        fields = ['user_payed_cost']
 
 
 #inputs
@@ -57,6 +62,7 @@ class FormCostsInputs(graphene.InputObjectType):
     membership_time = graphene.String()
     show_in_form = graphene.Boolean()
 
+
 class FormFieldsInputs(graphene.InputObjectType):
     association_slug = graphene.String()
     label = graphene.String()
@@ -65,6 +71,8 @@ class FormFieldsInputs(graphene.InputObjectType):
     show_in_form = graphene.Boolean()
     required = graphene.Boolean()
     type = graphene.String()
+
+
 #mutations
 
 
@@ -82,22 +90,50 @@ class FormMetaAddMutation(graphene.Mutation):
 
     form = graphene.Field(FormMetaType)
     success = graphene.Boolean()
+  
+    def mutate(root,
+               info,
+               association,
+               title,
+               description,
+               email,
+               phone,
+               link,
+               start_date,
+               days,
+               image=None):
 
-    def mutate(root, info, association, title, description, email, phone, link, start_date,
-               days, image=None):
         _association = Association.objects.get(id=association)
-        _form = Form.objects.create(association=_association,
-                                    title=title,
-                                    description=description,
-                                    email=email, 
-                                    photo=image,
-                                    phone_number=phone,
-                                    link=link,
-                                    start_date=start_date,
-                                    days=days)
-        _form.full_clean()
+        _association_form = Form.objects.filter(association=_association)
+        _association_form_exists = _association_form.exists()
         success = True
-        return FormMetaAddMutation(form=_form, success=success)
+        errors= None                          
+        if _association_form_exists:
+            Form.objects.filter(
+                association=_association).update(title=title,
+                                                 description=description,
+                                                 email=email,
+                                                 photo=image,
+                                                 phone_number=phone,
+                                                 link=link,
+                                                 start_date=start_date,
+                                                 days=days)
+            _association_form =  _association_form.first()
+        else:
+            _association_form = Form.objects.create(association=_association,
+                                                    title=title,
+                                                    description=description,
+                                                    email=email,
+                                                    photo=image,
+                                                    phone_number=phone,
+                                                    link=link,
+                                                    start_date=start_date,
+                                                    days=days)
+ 
+        _association_form.full_clean()
+      
+      
+        return FormMetaAddMutation(form= _association_form, success=success)
 
 
 class AddCostsMutation(graphene.Mutation):
@@ -107,9 +143,11 @@ class AddCostsMutation(graphene.Mutation):
     cost = graphene.Field(CostType)
     success = graphene.Boolean()
 
-    def mutate(root,info , inputs):
-        _form = Form.objects.filter(association__slug=inputs[0].association_slug).first()
+    def mutate(root, info, inputs):
+        _form = Form.objects.filter(
+            association__slug=inputs[0].association_slug).first()
         Costs.objects.filter(form=_form).delete()
+
         for _input in inputs:
             cost = Costs.objects.create(form=_form,
                                         description=_input.description,
@@ -120,15 +158,16 @@ class AddCostsMutation(graphene.Mutation):
         success = True
         return AddCostsMutation(cost=cost, success=success)
 
+
 class AddCostMutation(graphene.Mutation):
     class Arguments:
-        inputs =  FormCostsInputs(required=True)
+        inputs = FormCostsInputs(required=True)
 
     cost = graphene.Field(CostType)
     success = graphene.Boolean()
 
-    def mutate(root,info , inputs):
-        
+    def mutate(root, info, inputs):
+
         _form = Form.objects.filter(id=inputs.association_slug).first()
         Costs.objects.filter(form=_form).delete()
         cost = Costs.objects.create(form=_form,
@@ -140,21 +179,23 @@ class AddCostMutation(graphene.Mutation):
         success = True
         return AddCostsMutation(cost=cost, success=success)
 
+
 class AddUserPayedCostMutation(graphene.Mutation):
     class Arguments:
         cost = graphene.ID()
         user = graphene.String()
 
+    
     cost = graphene.Field(UserPayedCostType)
     success = graphene.Boolean()
-
+    user = graphene.Field(BaseUserType)
     def mutate(root, info, cost, user):
         _cost = Costs.objects.get(id=cost)
         _user = BaseUser.objects.get(pk=user)
         user_payed_cost = UserPayedCosts.objects.create(cost=_cost, user=_user)
         user_payed_cost.full_clean()
         success = True
-        return AddUserPayedCostMutation(cost=user_payed_cost, success=success)
+        return AddUserPayedCostMutation(cost=user_payed_cost, user=_user, success=success)
 
 
 class AddFormFieldsMutation(graphene.Mutation):
@@ -163,34 +204,37 @@ class AddFormFieldsMutation(graphene.Mutation):
 
     field = graphene.Field(FormFieldType)
     success = graphene.Boolean()
-
+    
     def mutate(root, info, inputs):
-        _form = Form.objects.filter(association__slug= inputs[0].association_slug).first()
+        _form = Form.objects.filter(
+            association__slug=inputs[0].association_slug).first()
         Field.objects.filter(form=_form).delete()
-        
-        for _input in inputs:          
+
+        for _input in inputs:
             _field_type = FieldType.objects.get(name=_input.type)
             _field = Field.objects.create(form=_form,
-                                        label=_input.label,
-                                        description=_input.description,
-                                        placeholder=_input.placeholder,
-                                        show_in_form=_input.show_in_form,
-                                        required=_input.required,
-                                        type=_field_type)
+                                          label=_input.label,
+                                          description=_input.description,
+                                          placeholder=_input.placeholder,
+                                          show_in_form=_input.show_in_form,
+                                          required=_input.required,
+                                          type=_field_type)
             _field.full_clean()
-        success  = True
+        success = True
 
         return AddFormFieldMutation(field=_field, success=success)
 
+
 class AddFormFieldMutation(graphene.Mutation):
     class Arguments:
-       inputs = FormFieldsInputs(True)
+        inputs = FormFieldsInputs(True)
 
     field = graphene.Field(FormFieldType)
     success = graphene.Boolean()
 
-    def mutate(root,info, inputs):
-        _form = Form.objects.filter(association__slug= inputs.association_slug).first()
+    def mutate(root, info, inputs):
+        _form = Form.objects.filter(
+            association__slug=inputs.association_slug).first()
         _field_type = FieldType.objects.get(name=inputs.type)
         Field.objects.filter(form=_form).delete()
         _field = Field.objects.create(form=_form,
@@ -201,42 +245,48 @@ class AddFormFieldMutation(graphene.Mutation):
                                       required=inputs.required,
                                       type=_field_type)
         _field.full_clean()
-        success  = True
+        success = True
 
         return AddFormFieldMutation(field=_field, success=success)
+
 
 class AddFieldData(graphene.Mutation):
     class Arguments:
         field = graphene.ID()
-        user =  graphene.String()
+        user = graphene.String()
         data = graphene.String()
-    
+
     data = graphene.Field(FieldDataType)
     success = graphene.Boolean()
+
     def mutate(root, info, field, user, data):
         _user = BaseUser.objects.get(pk=user)
         _field = Field.objects.get(pk=field)
-    
+
         _data = FieldData.objects.create(field=_field, user=_user, data=data)
         _data.full_clean()
         success = True
         return AddFieldData(data=_data, success=success)
 
+
 class FormFilledByUserMutation(graphene.Mutation):
     class Arguments:
         user_payed_cost = graphene.ID()
-    
+
     filled_form = graphene.Field(FormFilledType)
     success = graphene.Boolean()
 
     def mutate(root, info, user_payed_cost):
-     
+
         _user_payed_cost = UserPayedCosts.objects.get(id=user_payed_cost)
-        _form_filled = FormFilledByUser.objects.create( user_payed_cost=_user_payed_cost)
+        _form_filled = FormFilledByUser.objects.create(
+            user_payed_cost=_user_payed_cost)
         _form_filled.full_clean()
         success = True
 
-        return FormFilledByUserMutation(filled_form=_form_filled, success=success)
+        return FormFilledByUserMutation(filled_form=_form_filled,
+                                        success=success)
+
 
 #global query and mutations
 class MembershipMutation(graphene.ObjectType):
@@ -247,36 +297,42 @@ class MembershipMutation(graphene.ObjectType):
     add_fields_to_form = AddFormFieldsMutation.Field()
     add_field_to_form = AddFormFieldMutation.Field()
     add_data_to_field = AddFieldData.Field()
-    form_filled  = FormFilledByUserMutation.Field()
+    form_filled = FormFilledByUserMutation.Field()
 
 
 class MembershipQuery(graphene.ObjectType):
     get_form_meta = graphene.Field(FormMetaType, id=graphene.ID())
-    get_form_by_association_slug = graphene.Field(FormMetaType, slug=graphene.String())
-    get_form_showed_fields = graphene.List(FormFieldType, slug = graphene.String())    
-    get_form_all_fields = graphene.List(FormFieldType, slug  =  graphene.String())
+    get_form_by_association_slug = graphene.Field(FormMetaType,
+                                                  slug=graphene.String())
+    get_form_showed_fields = graphene.List(FormFieldType,
+                                           slug=graphene.String())
+    get_form_all_fields = graphene.List(FormFieldType, slug=graphene.String())
 
-    get_form_all_fields_data = graphene.List(FieldDataType, form_id= graphene.ID())
-    get_form_showed_fields_data = graphene.List(FieldDataType,slug =  graphene.String())
+    get_form_all_fields_data = graphene.List(FieldDataType,
+                                             form_id=graphene.ID())
+    get_form_showed_fields_data = graphene.List(FieldDataType,
+                                                slug=graphene.String())
 
-    get_form_all_costs = graphene.List(CostType, slug  =  graphene.String())
+    get_form_all_costs = graphene.List(CostType, slug=graphene.String())
 
     def resolve_get_form_meta(root, info, id):
         return Form.objects.get(id=id)
+
     def resolve_get_form_by_association_slug(root, info, slug):
         return Form.objects.filter(association__slug=slug).first()
+
     def resolve_get_form_showed_fields(root, info, slug):
-        return Form.objects.filter(association__slug=slug,  show_in_form=True)
+        return Form.objects.filter(association__slug=slug, show_in_form=True)
+
     def resolve_get_form_all_fields(root, info, slug):
         return Form.objects.filter(association__slug=slug)
 
     def resolve_get_form_showed_fields_data(root, info, form_id):
         return FieldData.objects.filter(form__id=form_id, show_in_form=True)
-    
 
     def resolve_get_form_all_fields_data(root, info, form_id):
-        return FieldData.objects.filter(form__id=form_id, field__show_in_form=True)
-
+        return FieldData.objects.filter(form__id=form_id,
+                                        field__show_in_form=True)
 
     def resolve_get_form_all_costs(root, info, slug):
         return Costs.objects.filter(form__association__slug=slug)
