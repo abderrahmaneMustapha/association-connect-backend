@@ -60,8 +60,7 @@ class MembershipMutationsTestCase(TestCase):
         cls.cost = Costs.objects.create(form=cls.form,
                                         description="a new cost of membership",
                                         amount=11,
-                                        membership_time=timedelta(
-                                            days=-1, seconds=68400),
+                                        membership_time=2,
                                         show_in_form=True)
 
         cls.user_payed_cost = UserPayedCosts.objects.create(user=cls.user,
@@ -164,7 +163,7 @@ class MembershipMutationsTestCase(TestCase):
                 success
             }
         }""" % (self.form.association.slug, 234, "azazeazeazeaze",
-                timedelta(days=-1, seconds=68400))
+                4)
 
         response = client.execute(query)
         assert 'errors' not in response
@@ -180,8 +179,8 @@ class MembershipMutationsTestCase(TestCase):
                 success
             }
         }""" % (self.form.association.slug, 234, "azazeazeazeaze",
-                timedelta(days=-1, seconds=68400), self.form.association.slug, 264,
-                "azeazeazeaze", timedelta(days=-1, seconds=68900))
+                6, self.form.association.slug, 264,
+                "azeazeazeaze", 8)
 
         response = client.execute(query)
         assert 'errors' not in response
