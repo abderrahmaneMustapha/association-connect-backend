@@ -62,7 +62,6 @@ class AssociationGroupMemberType(DjangoObjectType):
 
 class MemberAddByAdminMutation(graphene.Mutation):
     class Arguments:
-
         association = graphene.ID()
         user = graphene.String()
 
@@ -72,9 +71,15 @@ class MemberAddByAdminMutation(graphene.Mutation):
     def mutate(root, info, association, user):
 
         association = Association.objects.get(id=association)
-        user_ = BaseUser.objects.get(key=user)
-        member = Member.objects.create(association=association, user=user_)
+        super_member = Member.objects.get(user=info.context.user)
+        member = None
         success = True
+        if super_member.user.has_perm("add_association_member", association) or super_member.is_owner:
+            user_ = BaseUser.objects.get(key=user)
+            member = Member.objects.create(association=association, user=user_)
+        else : 
+            success=False
+
 
         return MemberAddByAdminMutation(member=member, success=success)
 
@@ -110,7 +115,7 @@ class MemberArchiveMutation(graphene.Mutation):
         member.is_archived = True
         member.save()
         success = True
-        return MemberAddMutation(member=member, success=success)
+        return MemberArchiveMutation(member=member, success=success)
 
 
 class AssociationCreationMutation(graphene.Mutation):
