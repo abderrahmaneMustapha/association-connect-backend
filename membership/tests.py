@@ -230,7 +230,7 @@ class MembershipMutationsTestCase(TestCase):
                 {description:\"%s\", associationSlug:\"%s\", label:\"%s\", placeholder:\"%s\", 
                 required:true, showInForm:true, type:\"%s\"}
             ]){
-                field{id, label},
+                fields{id, label},
                 success
             }
         }""" % (description, self.form.association.slug, label, placeholder,
@@ -238,7 +238,6 @@ class MembershipMutationsTestCase(TestCase):
                 placeholder, self.field_type.name)
 
         response = client.execute(query)
-        
         assert 'errors' not in response
 
     def test_add_field_data_to_form_mutation(self):
