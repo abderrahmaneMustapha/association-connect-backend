@@ -62,6 +62,7 @@ class AccountsMutationsTestCase(TestCase):
     def test_add_member_by_admin(self):
         client = Client(schema, context_value=self.req)
 
+        Member.objects.create( association= self.association, user=self.user)
         query = "mutation{addMemeberByAdmin(association:%s, user: \"%s\"){success}}" % (
             self.association.id, self.user.key)
         response = client.execute(query)
