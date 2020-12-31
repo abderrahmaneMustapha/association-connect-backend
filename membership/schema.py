@@ -5,7 +5,7 @@ import graphene
 
 from accounts.schema import BaseUserType
 from .models import Form, Association, Costs, UserPayedCosts, BaseUser, Field, FieldType, FieldData, FormFilledByUser
-from .forms import FormCreationForm
+
 
 
 # object types
