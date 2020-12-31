@@ -2,6 +2,7 @@ from graphene_django import DjangoObjectType
 from .models import (BaseUser, Member, Association, AssociationGroup,
                      AssociationGroupMember, AssociationType as
                      AssociationTypeModel, ExpectedAssociationMembersNumber)
+
 import graphene
 
 from django.contrib.auth.models import Permission
@@ -22,7 +23,10 @@ class ModelsPermissionType(DjangoObjectType):
         model = Permission
         fields = ['id', 'codename', 'name']
 
-
+class BaseUserType(DjangoObjectType):
+    class Meta:
+        model = BaseUser
+        fields = '__all__'
 class MemberType(DjangoObjectType):
     class Meta:
         model = Member
@@ -139,6 +143,7 @@ class AssociationCreationMutation(graphene.Mutation):
     def mutate(root, info, name, description, association_type,
                association_min_max_numbers, phone, email):
 
+        
         association_type = AssociationTypeModel.objects.get(
             id=association_type)
 
@@ -152,6 +157,8 @@ class AssociationCreationMutation(graphene.Mutation):
             description=description,
             association_type=association_type,
             association_min_max_numbers=association_min_max_numbers)
+
+        association.full_clean()
 
         association.slugify_()
         association.save()
@@ -392,8 +399,6 @@ class OwnerRemoveGroupPermissionsToMembers(graphene.Mutation):
 
 
 # end mutations
-
-
 class AccountsMutation(graphene.ObjectType):
     add_member = MemberAddMutation.Field()
     add_memeber_by_admin = MemberAddByAdminMutation.Field()
