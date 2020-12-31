@@ -76,7 +76,7 @@ class MemberAddByAdminMutation(graphene.Mutation):
         member = Member.objects.create(association=association, user=user_)
         success = True
 
-        return MemberAddMutation(member=member, success=success)
+        return MemberAddByAdminMutation(member=member, success=success)
 
 
 class MemberDeleteMutation(graphene.Mutation):
