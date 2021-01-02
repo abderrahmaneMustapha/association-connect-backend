@@ -83,8 +83,8 @@ class FormMetaAddMutation(graphene.Mutation):
         description = graphene.String()
         email = graphene.String()
         phone = graphene.String()
-        image = Upload()
-        link = graphene.String()
+        image = Upload(required=False)
+        link = graphene.String(required=False)
         start_date = graphene.Date()
         days = graphene.Int()
 

@@ -2,6 +2,7 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from accounts.models import BaseUser, Association, AssociationMembership, Member
 from phonenumber_field.modelfields import PhoneNumberField
+
 class Form(models.Model):
     association  = models.ForeignKey(Association, verbose_name=_("association"), on_delete=models.CASCADE)
     title =  models.CharField(_("form title"), max_length=125 )
@@ -9,7 +10,7 @@ class Form(models.Model):
     email = models.EmailField(_("form email"), max_length = 254)
     photo = models.ImageField(_("form image"),upload_to='associations/forms', blank=True ,null=True)
     phone_number = PhoneNumberField(_("phone number"), null=True)
-    link = models.URLField(_("website link"),null=True)
+    link = models.URLField(_("website link"),null=True, blank=True)
     start_date = models.DateField(_("day when form is gonna be available"))
     days = models.IntegerField(_("how many days this form is gonna be available"))
     created_at = models.DateTimeField(auto_now_add=True, null=True)
@@ -30,14 +31,10 @@ class UserPayedCosts(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)
 
-
 class FieldType(models.Model):
     name  = models.CharField("field name", max_length=125)
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)
-
-
-
 
 class Field(models.Model):
     form = models.ForeignKey(Form, verbose_name=_("form"), on_delete=models.CASCADE)
