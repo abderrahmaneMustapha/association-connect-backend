@@ -116,6 +116,7 @@ class Association(models.Model):
             ('add_association_member', 'Add an new association member'),
             ('delete_association_member', 'Delete association member'),
             ('view_association_member', 'View association member'),
+            ('manage_group', 'manage group')
         )
 
 
@@ -157,7 +158,6 @@ class AssociationGroup(models.Model):
                 ('update_group_info', 'Update group Info'),
                 ('view_group_dashboard', 'View group dashboard'),
                 ('delete_group', 'Delete group'),
-                ('add_group', 'Add new group')
         )
 
 class AssociationGroupMember(models.Model):
