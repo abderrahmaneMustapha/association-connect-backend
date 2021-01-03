@@ -9,6 +9,7 @@ from .models import (BaseUser, Member, Association, AssociationGroup,
                      AssociationGroupMember, AssociationType as
                      AssociationTypeModel, ExpectedAssociationMembersNumber)
 
+from .utils import have_association_permission, have_group_permission
 
 #types
 class ModelsContentType(DjangoObjectType):
@@ -59,7 +60,6 @@ class AssociationGroupMemberType(DjangoObjectType):
 # mutations
 
 
-
 class MemberAddByAdminMutation(graphene.Mutation):
     class Arguments:
         association = graphene.ID()
@@ -71,10 +71,9 @@ class MemberAddByAdminMutation(graphene.Mutation):
     def mutate(root, info, association, user):
 
         association = Association.objects.get(id=association)
-        super_member = Member.objects.get(user=info.context.user)
         member = None
         success = True
-        if super_member.user.has_perm("add_association_member", association) or super_member.is_owner:
+        if have_association_permission(association, info.context.user,  "add_association_member"):
             user_ = BaseUser.objects.get(key=user)
             member = Member.objects.create(association=association, user=user_)
         else : 
@@ -93,10 +92,15 @@ class MemberDeleteMutation(graphene.Mutation):
     member = graphene.Field(MemberType)
 
     def mutate(root, info, association, user):
-
-        member = Member.objects.filter(association__pk=association,
-                                       user__key=user).delete()
-        success = True
+        _association = Association.objects.get(id=association)
+        member = None
+        success = False
+        if have_association_permission(_association, info.context.user,  "delete_association_member"):
+            member = Member.objects.filter(association=_association,
+                                        user__key=user).delete()
+            success = True
+        
+        
         return MemberDeleteMutation(member=member, success=success)
 
 
@@ -109,12 +113,16 @@ class MemberArchiveMutation(graphene.Mutation):
     member = graphene.Field(MemberType)
 
     def mutate(root, info, association, user):
+        _association = Association.objects.get(id=association)
+        success = False
+        member = None
+        if have_association_permission(_association, info.context.user,  "delete_association_member"):
+            member = Member.objects.get(association=_association,
+                                        user__key=user)
+            member.is_archived = True
+            member.save()
+            success = True
 
-        member = Member.objects.get(association__pk=association,
-                                    user__key=user)
-        member.is_archived = True
-        member.save()
-        success = True
         return MemberArchiveMutation(member=member, success=success)
 
 
@@ -214,10 +222,15 @@ class AssociationDeleteMutation(graphene.Mutation):
     association = graphene.Field(AssociationType)
 
     def mutate(root, info, id):
-        association = Association.objects.filter(id=id)
-        association_ = association.first()
-        association.delete()
-        success = True
+        super_member = Member.objects.get(user=info.context.user).is_owner
+        association_ = None
+        success = False
+        if super_member:
+            association = Association.objects.filter(id=id)
+            association_ = association.first()
+            association.delete()
+            success = True
+
         return AssociationDeleteMutation(association=association_,
                                          success=success)
 
@@ -232,9 +245,11 @@ class AssociationUpdateDescriptionMutation(graphene.Mutation):
 
     def mutate(root, info, association, description):
         association = Association.objects.get(id=association)
-        association.description = description
-        association.save()
-        success = True
+        success  = False
+        if have_association_permission(association, info.context.user,  "update_association_info"):
+            association.description = description
+            association.save()
+            success = True
         return AssociationCreationMutation(association=association,
                                            success=success)
 
@@ -249,11 +264,14 @@ class AssociationGroupCreationMutation(graphene.Mutation):
     group = graphene.Field(AssociationGroupType)
 
     def mutate(root, info, name, association, group_type):
-        association = Association.objects.get(id=association)
-        _group = AssociationGroup.objects.create(name=name,
-                                                 association=association,
-                                                 group_type=group_type)
-        success = True
+        _association = Association.objects.get(id=association)
+        _group = None
+        success = False
+        if have_association_permission(_association, info.context.user,  "manage_group"):
+            _group = AssociationGroup.objects.create(name=name,
+                                                    association=_association,
+                                                    group_type=group_type)
+            success = True
         return AssociationGroupCreationMutation(group=_group, success=success)
 
 
@@ -266,12 +284,17 @@ class AssociationGroupDeleteMutation(graphene.Mutation):
     group = graphene.Field(AssociationGroupType)
 
     def mutate(root, info, group, association):
-        association = Association.objects.get(id=association)
-        _group = AssociationGroup.objects.filter(id=group,
-                                                 association=association)
-        _group.delete()
-        success = True
-        return AssociationGroupCreationMutation(group=_group.first(),
+
+        _association = Association.objects.get(id=association)
+        _group = None
+        success = False
+        if have_association_permission(_association, info.context.user,  "manage_group"):
+            _group = AssociationGroup.objects.filter(id=group,
+                                                    association=_association)                                        
+            _group.delete()
+            _group = _group.first()
+            success = True
+        return AssociationGroupCreationMutation(group=_group,
                                                 success=success)
 
 
@@ -286,10 +309,13 @@ class AssociationGroupMemberAddMutation(graphene.Mutation):
     def mutate(root, info, member, group):
         _member = Member.objects.get(id=member)
         _group = AssociationGroup.objects.get(id=group)
-        member = AssociationGroupMember.objects.create(member=_member,
-                                                       group=_group)
-        success = True
-        return AssociationGroupMemberAddMutation(member=member,
+        group_member = None
+        success = False
+        if have_group_permission(_group.association, _group, info.context.user, "add_group_member"):
+            group_member = AssociationGroupMember.objects.create(member=_member,
+                                                        group=_group)
+            success = True
+        return AssociationGroupMemberAddMutation(member=group_member,
                                                  success=success)
 
 
