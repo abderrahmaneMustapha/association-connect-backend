@@ -71,20 +71,19 @@ class AccountsMutationsTestCase(TestCase):
 
     def test_delete_member(self):
         client = Client(schema, context_value=self.req)
-
+        Member.objects.create(user=self.user,association=self.association, is_owner=True)
         query = "mutation{deleteMember(association:%s , user:\"%s\"){success}}" % (
             self.association.id, self.delete_user.key)
         response = client.execute(query)
 
-        member_deleted = Member.objects.filter(
+        member_deleted = not Member.objects.filter(
             user=self.delete_user, association=self.association).exists()
-
         assert 'errors' not in response
-        assert member_deleted == False
+        assert member_deleted == True
 
     def test_archive_member(self):
         client = Client(schema, context_value=self.req)
-
+        Member.objects.create(user=self.user,association=self.association, is_owner=True)
         query = "mutation{archiveMember(association: %s , user:\"%s\"){success}}" % (
             self.association.id, self.archive_user.key)
         response = client.execute(query)
@@ -142,7 +141,7 @@ class AccountsMutationsTestCase(TestCase):
 
     def test_delete_association(self):
         client = Client(schema, context_value=self.req)
-
+        Member.objects.create(user=self.user, association=self.association, is_owner=True)
         query = """
             mutation {
                 deleteAssciation(id:%s){
@@ -161,7 +160,10 @@ class AccountsMutationsTestCase(TestCase):
 
     def test_update_association_description(self):
         client = Client(schema, context_value=self.req)
+        Member.objects.create(user=self.user, association=self.association, is_owner=True)
+
         new_association_description = "new updated description"
+        
         query = """
         mutation {
             updateAssociationDescription(association: %s , description: \"%s\") {
@@ -184,7 +186,7 @@ class AccountsMutationsTestCase(TestCase):
 
     def test_association_group_creation(self):
         client = Client(schema, context_value=self.req)
-
+        Member.objects.create(user=self.user, association=self.association, is_owner=True)
         query = """
             mutation {
                 createGroup(association:%s, groupType:"S", name:\"%s\"){
@@ -197,6 +199,9 @@ class AccountsMutationsTestCase(TestCase):
 
         response = client.execute(query)
         assert 'errors' not in response
+
+        group_exists = AssociationGroup.objects.filter(association=self.association.id, name="Amateur").exists()
+        assert group_exists == True
 
         query = """
             mutation {
@@ -211,9 +216,12 @@ class AccountsMutationsTestCase(TestCase):
         response = client.execute(query)
         assert 'errors' not in response
 
+        group_exists = AssociationGroup.objects.filter(association=self.association.id, name="Seniors").exists()
+        assert group_exists == True
+
     def test_association_group_delete(self):
         client = Client(schema, context_value=self.req)
-
+        Member.objects.create(user=self.user, association=self.association, is_owner=True)
         query = """
             mutation {
                 deleteGroup(association:%s, group:%s){
@@ -231,7 +239,7 @@ class AccountsMutationsTestCase(TestCase):
     
     def test_association_add_member_group(self):
         client = Client(schema, context_value=self.req)
-
+        Member.objects.create(user=self.user, association=self.association, is_owner=True)
         query="""
         mutation {
             addMemberGroup(member:%s, group:%s){
