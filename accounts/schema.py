@@ -328,10 +328,14 @@ class AssociationGroupMemberRemoveMutation(graphene.Mutation):
     member = graphene.Field(AssociationGroupMemberType)
 
     def mutate(root, info, member, group):
-        group_member = AssociationGroupMember.objects.filter(member=member,
-                                                             group=group)
-        group_member.delete()
-        success = True
+        _group = AssociationGroup.objects.get(id=group)
+        success = False
+        group_member = None
+        if have_group_permission(_group.association, _group, info.context.user, "delete_group_member"):
+            group_member = AssociationGroupMember.objects.filter(member__id=member,
+                                                                group=_group)
+            group_member.delete()
+            success = True
         return AssociationGroupMemberRemoveMutation(
             member=group_member.first(), success=success)
 
@@ -348,8 +352,10 @@ class OwnerGiveAssociationPermissionsToMembers(graphene.Mutation):
     def mutate(root, info, permission, association, member):
         _association = Association.objects.get(id=association)
         _member = Member.objects.get(id=member)
-        assign_perm(permission, _member.user, _association)
-        success = True
+        success = False
+        if have_association_permission(_association, info.context.user, "manage_association_permissions"):
+            assign_perm(permission, _member.user, _association)
+            success = True
         return OwnerGiveAssociationPermissionsToMembers(member=_member,
                                                         success=success)
 
@@ -366,8 +372,10 @@ class OwnerRemoveAssociationPermissionsToMembers(graphene.Mutation):
     def mutate(root, info, permission, association, member):
         _association = Association.objects.get(id=association)
         _member = Member.objects.get(id=member)
-        remove_perm(permission, _member.user, _association)
-        success = True
+        success = False
+        if have_association_permission(_association, info.context.user, "manage_association_permissions"):
+            remove_perm(permission, _member.user, _association)
+            success = True
         return OwnerRemoveAssociationPermissionsToMembers(member=_member,
                                                           success=success)
 
@@ -386,9 +394,12 @@ class OwnerGiveGroupPermissionsToMembers(graphene.Mutation):
         _association = Association.objects.get(id=association)
         _group = AssociationGroup.objects.get(id=group,
                                               association__id=association)
-        _member = Member.objects.get(id=member)
-        assign_perm(permission, _member.user, _group)
-        success = True
+        success = False
+        _member = None
+        if have_group_permission(_group.association, _group, info.context.user, "manage_group_permissions"):
+            _member = Member.objects.get(id=member)
+            assign_perm(permission, _member.user, _group)
+            success = True
         return OwnerGiveGroupPermissionsToMembers(member=_member,
                                                   success=success)
 
@@ -407,9 +418,13 @@ class OwnerRemoveGroupPermissionsToMembers(graphene.Mutation):
         _association = Association.objects.get(id=association)
         _group = AssociationGroup.objects.get(id=group,
                                               association__id=association)
-        _member = Member.objects.get(id=member)
-        remove_perm(permission, _member.user, _group)
-        success = True
+    
+        success = False
+        _member = None
+        if have_group_permission(_group.association, _group, info.context.user, "manage_group_permissions"):
+            _member = Member.objects.get(id=member)
+            remove_perm(permission, _member.user, _group)
+            success = True
         return OwnerRemoveGroupPermissionsToMembers(member=_member,
                                                     success=success)
 
