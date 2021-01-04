@@ -461,18 +461,41 @@ class AccountsMutation(graphene.ObjectType):
 class AccountsQuery(graphene.ObjectType):
     get_association_by_slug = graphene.Field(
         AssociationType, slug=graphene.String(required=True))
+
+    get_all_associations = graphene.Field(AssociationType)
+
+    get_associations_group_by_id = graphene.Field(AssociationGroupType,id=graphene.ID(required=True))
+    get_all_associations_groups  = graphene.List(AssociationGroupType, slug=graphene.String(required=True))
+    get_associations_members = graphene.List(MemberType, slug=graphene.String(required=True)) 
+    get_association_member_by_id = graphene.Field(MemberType, id=graphene.ID(required=True))
     get_all_association_object_permissions = graphene.List(
         ModelsPermissionType)
+
     get_all_association_group_object_permissions = graphene.List(
         ModelsPermissionType)
+
     get_all_association_member_object_permissions = graphene.List(
         ModelsPermissionType)
+
     get_all_association_group_member_object_permissions = graphene.List(
         ModelsPermissionType)
 
     def resolve_get_association_by_slug(root, info, slug):
         return Association.objects.get(slug=slug)
 
+    def resolve_get_all_associations(root, info):
+        return Association.objects.all()
+
+    def resolve_get_all_associations_groups(root, info, slug):
+        return Association.objects.filter(slug=slug)
+
+    def resolve_get_associations_group_by_id(root, info, id):
+        return AssociationGroup.objects.get(pk=id)
+
+    def resolve_get_associations_members(root, info, slug):
+        return Member.objects.filter(association__slug=slug)
+    def resolve_get_association_member_by_id(root, info, id):
+        return Member.object.get(id=id)
     def resolve_get_all_association_object_permissions(root, info):
         content_type = ContentType.objects.get_for_model(Association)
         return Permission.objects.filter(content_type=content_type)
