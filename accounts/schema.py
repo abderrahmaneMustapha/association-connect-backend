@@ -468,6 +468,7 @@ class AccountsQuery(graphene.ObjectType):
     get_all_associations_groups  = graphene.List(AssociationGroupType, slug=graphene.String(required=True))
     get_associations_members = graphene.List(MemberType, slug=graphene.String(required=True)) 
     get_association_member_by_id = graphene.Field(MemberType, id=graphene.ID(required=True))
+    
     get_all_association_object_permissions = graphene.List(
         ModelsPermissionType)
 
