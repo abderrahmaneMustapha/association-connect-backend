@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 import graphene
 
 from accounts.schema import BaseUserType
-from .models import Form, Association, Costs, UserPayedCosts, BaseUser, Field, FieldType, FieldData, FormFilledByUser
+from .models import Form, Association, JoinRequest,  Costs, UserPayedCosts, BaseUser, Field, FieldType, FieldData, FormFilledByUser
 from accounts.utils import have_association_permission
 
 
@@ -53,7 +53,10 @@ class FormFilledType(DjangoObjectType):
         model = FormFilledByUser
         fields = ['user_payed_cost']
 
-
+class JoinRequestType(DjangoObjectType):
+    class Meta:
+        model = JoinRequest
+        fields = ['user_payed_cost']
 #inputs
 class FormCostsInputs(graphene.InputObjectType):
     association_slug = graphene.String()
@@ -333,6 +336,31 @@ class FormFilledByUserMutation(graphene.Mutation):
         return FormFilledByUserMutation(filled_form=_form_filled,
                                         success=success)
 
+class AcceptJoinRequestMutation(graphen.Mutation):
+    class Arguments:
+        join_request = graphene.ID()
+
+    join_request = graphene.Field()
+    def mutate(root, info, join_request ):
+        _join_request = JoinRequest.objects.get(id=join_request)
+        if  have_association_permission(association=_join_request.user_payed_cost.cost.form.association,
+                                       user=info.context.user,
+                                       permission="add_association_member"):
+            member = Member.objects.create(user=_join_request._user_payed_cost.user, association=_join_request._user_payed_cost.cost.form.association)        
+            AssociationMembership.objects.create(membership_time=_join_request._user_payed_cost.cost.membership_time, member=member)
+
+class DeclineJoinRequestMutation(graphen.Mutation):
+    class Arguments:
+        user_payed_cost = graphene.ID()
+
+      def mutate(root, info, user_payed_cost):
+        _user_payed_cost = UserPayedCosts.objects.filter(id=user_payed_cost)
+        _user_payed_cost.delete()
+        _user_payed_cost = _user_payed_cost.first()
+
+
+
+       
 
 #global query and mutations
 class MembershipMutation(graphene.ObjectType):

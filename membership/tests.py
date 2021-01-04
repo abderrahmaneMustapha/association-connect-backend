@@ -179,7 +179,6 @@ class MembershipMutationsTestCase(TestCase):
         cost_exists =  Costs.objects.filter(description="azazeazeazeaze", form=self.form).exists()
         assert cost_exists == True
 
-
     def test_add_membership_costs_mutation(self):
         client = Client(schema, context_value=self.req)
         Member.objects.create(user=self.user,association=self.association, is_owner=True)

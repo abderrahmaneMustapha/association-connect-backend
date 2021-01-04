@@ -13,6 +13,7 @@ class Form(models.Model):
     link = models.URLField(_("website link"),null=True, blank=True)
     start_date = models.DateField(_("day when form is gonna be available"))
     days = models.IntegerField(_("how many days this form is gonna be available"))
+    add_to_request = models.BooleanField(_("Add user to join request"), default=False)
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)
 
@@ -28,6 +29,12 @@ class Costs(models.Model):
 class UserPayedCosts(models.Model):
     cost  = models.ForeignKey(Costs, verbose_name=_("cost payed"), on_delete=models.CASCADE)
     user = models.ForeignKey(BaseUser, verbose_name=_("user who payed ths cost"), on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True)
+
+
+class JoinRequest(models.Model):
+    user_payed_cost = models.ForeignKey(UserPayedCosts, verbose_name=_("user payed cost"), on_delete=models.CASCADE, null=True, blank=False)
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)
 
@@ -63,9 +70,11 @@ class FormFilledByUser(models.Model):
         fields = Field.objects.filter(form=self.user_payed_cost.cost.form, show_in_form=True, required=True)
         for field in fields:
             field_data = FieldData.objects.get(field=field)
-            
-        member = Member.objects.create(user=self.user_payed_cost.user, association=self.user_payed_cost.cost.form.association)        
-        AssociationMembership.objects.create(membership_time=self.user_payed_cost.cost.membership_time, member=member)
+        if self.user_payed_cost.cost.form.add_to_request:
+             JoinRequest.objects.create(user_payed_cost=self.user_payed_cost)
+        else:
+            member = Member.objects.create(user=self.user_payed_cost.user, association=self.user_payed_cost.cost.form.association)        
+            AssociationMembership.objects.create(membership_time=self.user_payed_cost.cost.membership_time, member=member)
 
 
         super().save(*args, **kwargs)
