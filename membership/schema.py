@@ -5,7 +5,7 @@ import graphene
 
 from accounts.schema import BaseUserType
 from .models import Form, Association, Costs, UserPayedCosts, BaseUser, Field, FieldType, FieldData, FormFilledByUser
-
+from accounts.utils import have_association_permission
 
 
 # object types
@@ -90,7 +90,7 @@ class FormMetaAddMutation(graphene.Mutation):
 
     form = graphene.Field(FormMetaType)
     success = graphene.Boolean()
-  
+
     def mutate(root,
                info,
                association,
@@ -104,43 +104,50 @@ class FormMetaAddMutation(graphene.Mutation):
                image=None):
 
         _association = Association.objects.get(id=association)
-        _association_form = Form.objects.filter(association=_association)
-        _association_form_exists = _association_form.exists()
-        success = True
-        errors= None                          
-        if _association_form_exists:
-            Form.objects.filter(
-                association=_association).update(title=title,
-                                                 description=description,
-                                                 email=email,
-                                                 photo=image,
-                                                 phone_number=phone,
-                                                 link=link,
-                                                 start_date=start_date,
-                                                 days=days)
-            _association_form =  _association_form.first()
-        else:
-            _association_form = Form.objects.create(association=_association,
-                                                    title=title,
-                                                    description=description,
-                                                    email=email,
-                                                    photo=image,
-                                                    phone_number=phone,
-                                                    link=link,
-                                                    start_date=start_date,
-                                                    days=days)
- 
+        success = False
+        _association_form = None
+
+        if have_association_permission(association=_association,
+                                       user=info.context.user,
+                                       permission="manage_association_form"):
+            _association_form = Form.objects.filter(association=_association)
+            _association_form_exists = _association_form.exists()
+
+            if _association_form_exists:
+                Form.objects.filter(association=_association).update(
+                    title=title,
+                    description=description,
+                    email=email,
+                    photo=image,
+                    phone_number=phone,
+                    link=link,
+                    start_date=start_date,
+                    days=days)
+                _association_form = _association_form.first()
+                success = True
+            else:
+                _association_form = Form.objects.create(
+                    association=_association,
+                    title=title,
+                    description=description,
+                    email=email,
+                    photo=image,
+                    phone_number=phone,
+                    link=link,
+                    start_date=start_date,
+                    days=days)
+                success = True
+
         _association_form.full_clean()
-      
-      
-        return FormMetaAddMutation(form= _association_form, success=success)
+
+        return FormMetaAddMutation(form=_association_form, success=success)
 
 
 class AddCostsMutation(graphene.Mutation):
     class Arguments:
         inputs = graphene.List(FormCostsInputs)
 
-    cost = graphene.Field(CostType)
+    cost = graphene.List(CostType)
     success = graphene.Boolean()
 
     def mutate(root, info, inputs):
@@ -148,15 +155,25 @@ class AddCostsMutation(graphene.Mutation):
             association__slug=inputs[0].association_slug).first()
         Costs.objects.filter(form=_form).delete()
 
-        for _input in inputs:
-            cost = Costs.objects.create(form=_form,
-                                        description=_input.description,
-                                        amount=_input.amount,
-                                        membership_time=_input.membership_time,
-                                        show_in_form=_input.show_in_form)
-            cost.full_clean()
-        success = True
-        return AddCostsMutation(cost=cost, success=success)
+        success = False
+        costs = []
+
+        if have_association_permission(association=_form.association,
+                                       user=info.context.user,
+                                       permission="manage_association_form"):
+            for _input in inputs:
+                cost = Costs.objects.create(
+                    form=_form,
+                    description=_input.description,
+                    amount=_input.amount,
+                    membership_time=_input.membership_time,
+                    show_in_form=_input.show_in_form)
+
+                cost.full_clean()
+                costs.append(cost)
+
+            success = True
+        return AddCostsMutation(cost=costs, success=success)
 
 
 class AddCostMutation(graphene.Mutation):
@@ -168,15 +185,21 @@ class AddCostMutation(graphene.Mutation):
 
     def mutate(root, info, inputs):
 
-        _form = Form.objects.filter(id=inputs.association_slug).first()
-        Costs.objects.filter(form=_form).delete()
-        cost = Costs.objects.create(form=_form,
-                                    description=inputs.description,
-                                    amount=inputs.amount,
-                                    membership_time=inputs.membership_time,
-                                    show_in_form=inputs.show_in_form)
-        cost.full_clean()
-        success = True
+        _form = Form.objects.filter(association__slug=inputs.association_slug).first()
+        success = False
+
+        if have_association_permission(association=_form.association,
+                                       user=info.context.user,
+                                       permission="manage_association_form"):
+            Costs.objects.filter(form=_form).delete()
+            
+            cost = Costs.objects.create(form=_form,
+                                        description=inputs.description,
+                                        amount=inputs.amount,
+                                        membership_time=inputs.membership_time,
+                                        show_in_form=inputs.show_in_form)
+            cost.full_clean()
+            success = True
         return AddCostsMutation(cost=cost, success=success)
 
 
@@ -185,17 +208,19 @@ class AddUserPayedCostMutation(graphene.Mutation):
         cost = graphene.ID()
         user = graphene.String()
 
-    
     cost = graphene.Field(UserPayedCostType)
     success = graphene.Boolean()
     user = graphene.Field(BaseUserType)
+
     def mutate(root, info, cost, user):
         _cost = Costs.objects.get(id=cost)
         _user = BaseUser.objects.get(pk=user)
         user_payed_cost = UserPayedCosts.objects.create(cost=_cost, user=_user)
         user_payed_cost.full_clean()
         success = True
-        return AddUserPayedCostMutation(cost=user_payed_cost, user=_user, success=success)
+        return AddUserPayedCostMutation(cost=user_payed_cost,
+                                        user=_user,
+                                        success=success)
 
 
 class AddFormFieldsMutation(graphene.Mutation):
@@ -204,24 +229,31 @@ class AddFormFieldsMutation(graphene.Mutation):
 
     fields = graphene.List(FormFieldType)
     success = graphene.Boolean()
-    
+
     def mutate(root, info, inputs):
         _form = Form.objects.filter(
             association__slug=inputs[0].association_slug).first()
-        Field.objects.filter(form=_form).delete()
         _fields = []
-        for _input in inputs:
-            _field_type = FieldType.objects.get(name=_input.type)
-            _field = Field.objects.create(form=_form,
-                                          label=_input.label,
-                                          description=_input.description,
-                                          placeholder=_input.placeholder,
-                                          show_in_form=_input.show_in_form,
-                                          required=_input.required,
-                                          type=_field_type)
-            _fields.append(_field)
-            _field.full_clean()
-        success = True
+        success = False
+        if have_association_permission(association=_form.association,
+                                       user=info.context.user,
+                                       permission="manage_association_form"):
+
+            Field.objects.filter(form=_form).delete()
+            
+            for _input in inputs:
+                _field_type = FieldType.objects.get(name=_input.type)
+                _field = Field.objects.create(form=_form,
+                                            label=_input.label,
+                                            description=_input.description,
+                                            placeholder=_input.placeholder,
+                                            show_in_form=_input.show_in_form,
+                                            required=_input.required,
+                                            type=_field_type)
+               
+                _field.full_clean()
+                _fields.append(_field)
+            success = True
 
         return AddFormFieldsMutation(fields=_fields, success=success)
 
@@ -236,17 +268,25 @@ class AddFormFieldMutation(graphene.Mutation):
     def mutate(root, info, inputs):
         _form = Form.objects.filter(
             association__slug=inputs.association_slug).first()
-        _field_type = FieldType.objects.get(name=inputs.type)
-        Field.objects.filter(form=_form).delete()
-        _field = Field.objects.create(form=_form,
-                                      label=inputs.label,
-                                      description=inputs.description,
-                                      placeholder=inputs.placeholder,
-                                      show_in_form=inputs.show_in_form,
-                                      required=inputs.required,
-                                      type=_field_type)
-        _field.full_clean()
-        success = True
+
+        success = False
+        _field = None
+
+        if have_association_permission(association=_form.association,
+                                       user=info.context.user,
+                                       permission="manage_association_form"):
+
+            _field_type = FieldType.objects.get(name=inputs.type)
+            Field.objects.filter(form=_form).delete()
+            _field = Field.objects.create(form=_form,
+                                        label=inputs.label,
+                                        description=inputs.description,
+                                        placeholder=inputs.placeholder,
+                                        show_in_form=inputs.show_in_form,
+                                        required=inputs.required,
+                                        type=_field_type)
+            _field.full_clean()
+            success = True
 
         return AddFormFieldMutation(field=_field, success=success)
 
@@ -263,10 +303,15 @@ class AddFieldData(graphene.Mutation):
     def mutate(root, info, field, user, data):
         _user = BaseUser.objects.get(pk=user)
         _field = Field.objects.get(pk=field)
+        success = False
+        _data = None
+        if have_association_permission(association=_field.form.association,
+                                       user=info.context.user,
+                                       permission="manage_association_form"):
 
-        _data = FieldData.objects.create(field=_field, user=_user, data=data)
-        _data.full_clean()
-        success = True
+            _data = FieldData.objects.create(field=_field, user=_user, data=data)
+            _data.full_clean()
+            success = True
         return AddFieldData(data=_data, success=success)
 
 
