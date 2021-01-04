@@ -3,8 +3,8 @@ from graphene_file_upload.scalars import Upload
 from django.core.exceptions import ValidationError
 import graphene
 
-from accounts.schema import BaseUserType
-from .models import Form, Association, JoinRequest,  Costs, UserPayedCosts, BaseUser, Field, FieldType, FieldData, FormFilledByUser
+from accounts.schema import BaseUserType, MemberType
+from .models import Form, Association, JoinRequest, Member, AssociationMembership,  Costs, UserPayedCosts, BaseUser, Field, FieldType, FieldData, FormFilledByUser
 from accounts.utils import have_association_permission
 
 
@@ -340,23 +340,39 @@ class AcceptJoinRequestMutation(graphen.Mutation):
     class Arguments:
         join_request = graphene.ID()
 
-    join_request = graphene.Field()
+    success = graphene.Boolean()
+    join_request = graphene.Field(JoinRequestType)
+    member = graphene.Field(MemberType)
+    
     def mutate(root, info, join_request ):
         _join_request = JoinRequest.objects.get(id=join_request)
+        success = True
+        member =  None
         if  have_association_permission(association=_join_request.user_payed_cost.cost.form.association,
                                        user=info.context.user,
                                        permission="add_association_member"):
+            success = True
             member = Member.objects.create(user=_join_request._user_payed_cost.user, association=_join_request._user_payed_cost.cost.form.association)        
             AssociationMembership.objects.create(membership_time=_join_request._user_payed_cost.cost.membership_time, member=member)
-
+        return AcceptJoinRequestMutation(success=success, member=member, join_request=join_request)
 class DeclineJoinRequestMutation(graphen.Mutation):
     class Arguments:
-        user_payed_cost = graphene.ID()
+        join_request_id= graphene.ID()
 
-      def mutate(root, info, user_payed_cost):
-        _user_payed_cost = UserPayedCosts.objects.filter(id=user_payed_cost)
-        _user_payed_cost.delete()
-        _user_payed_cost = _user_payed_cost.first()
+    join_request = graphene.Field(JoinRequestType)
+    member=  graphene.Field(MemberType)
+    success = graphene.Boolean()
+    def mutate(root, info, join_request_id):
+        _join_request = JoinRequest.objects.filter(id=join_request_id)
+        success = False
+        if  have_association_permission(association=_join_request.user_payed_cost.cost.form.association,
+                                       user=info.context.user,
+                                       permission="delete_association_member"):
+            _join_request.delete()
+            _join_request = _join_request.first()
+            success=True
+    
+        return DeclineJoinRequestMutation(success=success, member=member, join_request=_join_request)
 
 
 
@@ -372,7 +388,8 @@ class MembershipMutation(graphene.ObjectType):
     add_field_to_form = AddFormFieldMutation.Field()
     add_data_to_field = AddFieldData.Field()
     form_filled = FormFilledByUserMutation.Field()
-
+    accept_join_request = AcceptJoinRequestMutation.Field()
+    decline_join_request = DeclineJoinRequestMutation.Field()
 
 class MembershipQuery(graphene.ObjectType):
     get_form_meta = graphene.Field(FormMetaType, id=graphene.ID())
