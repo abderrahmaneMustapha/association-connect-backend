@@ -117,7 +117,8 @@ class Association(models.Model):
             ('delete_association_member', 'Delete association member'),
             ('view_association_member', 'View association member'),
             ('manage_group', 'Manage group'),
-            ('manage_association_permissions', 'Manage association permissions')
+            ('manage_association_permissions', 'Manage association permissions'),
+            ('manage_association_form', 'Manage form')
         )
 
 
