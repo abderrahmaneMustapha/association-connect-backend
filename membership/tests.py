@@ -11,7 +11,7 @@ from accounts.models import (Association, AssociationType,
 from .models import (Form, Association, BaseUser, Member, Costs, FieldType,
                      Field, FieldData, UserPayedCosts)
 from django.core.files.uploadedfile import SimpleUploadedFile
-
+from django.test import RequestFactory
 
 class MembershipMutationsTestCase(TestCase):
     databases = {"default"}
@@ -89,9 +89,13 @@ class MembershipMutationsTestCase(TestCase):
             field=cls.field_second,
             user=cls.user,
             data={"name": "abderrahmane"})
+        
+        cls.req = RequestFactory().get('/')
+        cls.req.user = cls.user
 
     def test_add_form_meta_data(self):
-        client = Client(schema)
+        client = Client(schema, context_value=self.req)
+        Member.objects.create(user=self.user,association=self.association, is_owner=True)
         small_gif = (
             b'\x47\x49\x46\x38\x39\x61\x01\x00\x01\x00\x00\x00\x00\x21\xf9\x04'
             b'\x01\x0a\x00\x01\x00\x2c\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02'
@@ -122,8 +126,11 @@ class MembershipMutationsTestCase(TestCase):
                                           "+213780195168")
 
         response = client.execute(query)
-
+    
         assert 'errors' not in response
+
+        form_exist = Form.objects.filter(association=self.association, title="New form").exists()
+        assert form_exist == True
 
         query = """mutation{
                     addFormMeta(association:%s, 
@@ -155,22 +162,27 @@ class MembershipMutationsTestCase(TestCase):
             'errors'][0]['message']
 
     def test_add_membership_cost_mutation(self):
-        client = Client(schema)
+        client = Client(schema, context_value=self.req)
+        Member.objects.create(user=self.user,association=self.association, is_owner=True)
         query = """mutation{
-            addCostsToForm(inputs : {associationSlug:\"%s\", amount:%s, description:\"%s\", 
+            addCostToForm(inputs : {associationSlug:\"%s\", amount:%s, description:\"%s\", 
                 membershipTime:\"%s\", showInForm:true}){
                 cost{id, description}
                 success
             }
         }""" % (self.form.association.slug, 234, "azazeazeazeaze",
                 4)
-
+    
         response = client.execute(query)
         assert 'errors' not in response
 
-    def test_add_membership_costs_mutation(self):
-        client = Client(schema)
+        cost_exists =  Costs.objects.filter(description="azazeazeazeaze", form=self.form).exists()
+        assert cost_exists == True
 
+
+    def test_add_membership_costs_mutation(self):
+        client = Client(schema, context_value=self.req)
+        Member.objects.create(user=self.user,association=self.association, is_owner=True)
         query = """mutation{
             addCostsToForm(inputs : [{associationSlug:\"%s\", amount:%s, description:\"%s\", 
                 membershipTime:\"%s\", showInForm:true}, {associationSlug:\"%s\", amount:%s, description:\"%s\", 
@@ -185,6 +197,9 @@ class MembershipMutationsTestCase(TestCase):
         response = client.execute(query)
         assert 'errors' not in response
 
+        cost_count =  Costs.objects.filter( form=self.form).count()
+        assert cost_count == 2
+
     def test_add_membership_cost_payed_mutation(self):
         client = Client(schema)
 
@@ -198,7 +213,8 @@ class MembershipMutationsTestCase(TestCase):
         assert 'errors' not in response
 
     def test_add_field_to_form_mutation(self):
-        client = Client(schema)
+        client = Client(schema, context_value=self.req)
+        Member.objects.create(user=self.user,association=self.association, is_owner=True)
 
         description = "this is my field description"
         label = "field"
@@ -216,8 +232,15 @@ class MembershipMutationsTestCase(TestCase):
 
         assert 'errors' not in response
 
+        existing_fields = Field.objects.filter(form=self.form).exists()
+        assert existing_fields == True
+
+        count_fields = Field.objects.filter(form=self.form).count()
+        assert count_fields == 1
+
     def test_add_fields_to_form_mutation(self):
-        client = Client(schema)
+        client = Client(schema, context_value=self.req)
+        Member.objects.create(user=self.user,association=self.association, is_owner=True)
 
         description = "this is my field description"
         label = "field"
@@ -239,9 +262,16 @@ class MembershipMutationsTestCase(TestCase):
 
         response = client.execute(query)
         assert 'errors' not in response
+        
+        exisiting_fields = Field.objects.filter(form=self.form).exists()
+        assert exisiting_fields == True
+
+        count_fields = Field.objects.filter(form=self.form).count()
+        assert count_fields == 2
 
     def test_add_field_data_to_form_mutation(self):
-        client = Client(schema)
+        client = Client(schema, context_value=self.req)
+        Member.objects.create(user=self.user,association=self.association, is_owner=True)
 
         data = {"name": "this is my field description"}
 
