@@ -380,6 +380,18 @@ class MembershipMutationsTestCase(TestCase):
             user_payed_cost=self.user_payed_cost_to_request).accept
         assert accepted_join_req == True
 
+        member = Member.objects.filter(user= self.user,  association=self.association_add_to_request, is_owner=False)
+        assert member.exists() == True
+
+
+        membership = AssociationMembership.objects.filter(member=member)
+
+        assert membership.exists() == True
+
+        
+        
+        
+
         query = """mutation{
             declineJoinRequest(joinRequestId:%s){
                 success,
@@ -387,7 +399,7 @@ class MembershipMutationsTestCase(TestCase):
         }""" % (join_request.id)
 
         response = client.execute(query)
-        print(response)
+      
         assert 'errors' not in response
 
         accepted_join_req_exists  = JoinRequest.objects.filter(user_payed_cost=self.user_payed_cost_to_request).exists()
