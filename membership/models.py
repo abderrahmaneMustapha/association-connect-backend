@@ -1,6 +1,6 @@
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
-from accounts.models import BaseUser, Association, AssociationMembership, Member
+from accounts.models import BaseUser, Association, AssociationMembership, Member, AssociationGroup
 from phonenumber_field.modelfields import PhoneNumberField
 
 class Form(models.Model):
@@ -79,3 +79,10 @@ class FormFilledByUser(models.Model):
 
 
         super().save(*args, **kwargs)
+
+class AssociationGroupJoinRequest(models.Model):
+    group = models.ForeignKey(AssociationGroup, verbose_name=_("group"), on_delete=models.CASCADE)
+    user_payed_cost = models.ForeignKey(UserPayedCosts, verbose_name=_("user payed cost"), on_delete=models.CASCADE)
+    accept = models.BooleanField(_("accept this join request"), default=False)
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True)
