@@ -2,9 +2,9 @@ from graphene_django import DjangoObjectType
 from graphene_file_upload.scalars import Upload
 from django.core.exceptions import ValidationError
 import graphene
-
+from accounts.models import AssociationGroupMember
 from accounts.schema import BaseUserType, MemberType
-from .models import Form, Association, JoinRequest, Member, AssociationMembership, Costs, UserPayedCosts, BaseUser, Field, FieldType, FieldData, FormFilledByUser
+from .models import Form, AssociationGroupJoinRequest, Association, JoinRequest, Member, AssociationMembership, Costs, UserPayedCosts, BaseUser, Field, FieldType, FieldData, FormFilledByUser, AssociationGroup
 from accounts.utils import have_association_permission
 
 
@@ -335,16 +335,29 @@ class AddFieldData(graphene.Mutation):
 class FormFilledByUserMutation(graphene.Mutation):
     class Arguments:
         user_payed_cost = graphene.ID()
+        groups  =  graphene.List(graphene.ID, required=False)
 
     filled_form = graphene.Field(FormFilledType)
     success = graphene.Boolean()
 
-    def mutate(root, info, user_payed_cost):
-
+    def mutate(root, info ,user_payed_cost,  groups=[]):
+        
         _user_payed_cost = UserPayedCosts.objects.get(id=user_payed_cost)
+       
         _form_filled = FormFilledByUser.objects.create(
             user_payed_cost=_user_payed_cost)
         _form_filled.full_clean()
+
+        add_to_request =  _user_payed_cost.cost.form.add_to_request 
+        if add_to_request :
+            for group_id in groups :
+                group = AssociationGroup.objects.get(id=group_id)
+                AssociationGroupJoinRequest.objects.create(group=group, user_payed_cost=_user_payed_cost)
+        else:
+            for group_id in groups :
+                member = Member.objects.get(user=_user_payed_cost.user, association=_user_payed_cost.cost.form.association)  
+                group = AssociationGroup.objects.get(id=group_id)
+                AssociationGroupMember.objects.create(member=member, group=group)
         success = True
 
         return FormFilledByUserMutation(filled_form=_form_filled,
@@ -378,6 +391,11 @@ class AcceptJoinRequestMutation(graphene.Mutation):
                 membership_time=_join_request.user_payed_cost.cost.
                 membership_time,
                 member=member)
+            
+            groups_join_reqs = AssociationGroupJoinRequest.objects.filter(user_payed_cost=_join_request.user_payed_cost)
+            for group_joi_req in groups_join_reqs:
+                AssociationGroupMember.objects.create(member=member, group=group_joi_req.group)
+
         return AcceptJoinRequestMutation(success=success,
                                          member=member,
                                          join_request=join_request)
