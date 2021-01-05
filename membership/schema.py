@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 import graphene
 
 from accounts.schema import BaseUserType, MemberType
-from .models import Form, Association, JoinRequest, Member, AssociationMembership,  Costs, UserPayedCosts, BaseUser, Field, FieldType, FieldData, FormFilledByUser
+from .models import Form, Association, JoinRequest, Member, AssociationMembership, Costs, UserPayedCosts, BaseUser, Field, FieldType, FieldData, FormFilledByUser
 from accounts.utils import have_association_permission
 
 
@@ -14,7 +14,7 @@ class FormMetaType(DjangoObjectType):
         model = Form
         fields = [
             'id', 'association', 'title', 'description', 'email', 'start_date',
-            'days'
+            'days', 'add_to_request'
         ]
 
 
@@ -53,10 +53,13 @@ class FormFilledType(DjangoObjectType):
         model = FormFilledByUser
         fields = ['user_payed_cost']
 
+
 class JoinRequestType(DjangoObjectType):
     class Meta:
         model = JoinRequest
         fields = ['user_payed_cost']
+
+
 #inputs
 class FormCostsInputs(graphene.InputObjectType):
     association_slug = graphene.String()
@@ -90,6 +93,7 @@ class FormMetaAddMutation(graphene.Mutation):
         link = graphene.String(required=False)
         start_date = graphene.Date()
         days = graphene.Int()
+        add_to_request = graphene.Boolean(required=False)
 
     form = graphene.Field(FormMetaType)
     success = graphene.Boolean()
@@ -104,7 +108,8 @@ class FormMetaAddMutation(graphene.Mutation):
                link,
                start_date,
                days,
-               image=None):
+               image=None,
+               add_to_request=False):
 
         _association = Association.objects.get(id=association)
         success = False
@@ -188,14 +193,15 @@ class AddCostMutation(graphene.Mutation):
 
     def mutate(root, info, inputs):
 
-        _form = Form.objects.filter(association__slug=inputs.association_slug).first()
+        _form = Form.objects.filter(
+            association__slug=inputs.association_slug).first()
         success = False
 
         if have_association_permission(association=_form.association,
                                        user=info.context.user,
                                        permission="manage_association_form"):
             Costs.objects.filter(form=_form).delete()
-            
+
             cost = Costs.objects.create(form=_form,
                                         description=inputs.description,
                                         amount=inputs.amount,
@@ -243,17 +249,17 @@ class AddFormFieldsMutation(graphene.Mutation):
                                        permission="manage_association_form"):
 
             Field.objects.filter(form=_form).delete()
-            
+
             for _input in inputs:
                 _field_type = FieldType.objects.get(name=_input.type)
                 _field = Field.objects.create(form=_form,
-                                            label=_input.label,
-                                            description=_input.description,
-                                            placeholder=_input.placeholder,
-                                            show_in_form=_input.show_in_form,
-                                            required=_input.required,
-                                            type=_field_type)
-               
+                                              label=_input.label,
+                                              description=_input.description,
+                                              placeholder=_input.placeholder,
+                                              show_in_form=_input.show_in_form,
+                                              required=_input.required,
+                                              type=_field_type)
+
                 _field.full_clean()
                 _fields.append(_field)
             success = True
@@ -282,12 +288,12 @@ class AddFormFieldMutation(graphene.Mutation):
             _field_type = FieldType.objects.get(name=inputs.type)
             Field.objects.filter(form=_form).delete()
             _field = Field.objects.create(form=_form,
-                                        label=inputs.label,
-                                        description=inputs.description,
-                                        placeholder=inputs.placeholder,
-                                        show_in_form=inputs.show_in_form,
-                                        required=inputs.required,
-                                        type=_field_type)
+                                          label=inputs.label,
+                                          description=inputs.description,
+                                          placeholder=inputs.placeholder,
+                                          show_in_form=inputs.show_in_form,
+                                          required=inputs.required,
+                                          type=_field_type)
             _field.full_clean()
             success = True
 
@@ -312,7 +318,9 @@ class AddFieldData(graphene.Mutation):
                                        user=info.context.user,
                                        permission="manage_association_form"):
 
-            _data = FieldData.objects.create(field=_field, user=_user, data=data)
+            _data = FieldData.objects.create(field=_field,
+                                             user=_user,
+                                             data=data)
             _data.full_clean()
             success = True
         return AddFieldData(data=_data, success=success)
@@ -336,47 +344,61 @@ class FormFilledByUserMutation(graphene.Mutation):
         return FormFilledByUserMutation(filled_form=_form_filled,
                                         success=success)
 
-class AcceptJoinRequestMutation(graphen.Mutation):
+
+class AcceptJoinRequestMutation(graphene.Mutation):
     class Arguments:
         join_request = graphene.ID()
 
     success = graphene.Boolean()
     join_request = graphene.Field(JoinRequestType)
     member = graphene.Field(MemberType)
-    
-    def mutate(root, info, join_request ):
+
+    def mutate(root, info, join_request):
         _join_request = JoinRequest.objects.get(id=join_request)
-        success = True
-        member =  None
-        if  have_association_permission(association=_join_request.user_payed_cost.cost.form.association,
+        success = False
+        member = None
+        if have_association_permission(association=_join_request.
+                                       user_payed_cost.cost.form.association,
                                        user=info.context.user,
                                        permission="add_association_member"):
             success = True
-            member = Member.objects.create(user=_join_request._user_payed_cost.user, association=_join_request._user_payed_cost.cost.form.association)        
-            AssociationMembership.objects.create(membership_time=_join_request._user_payed_cost.cost.membership_time, member=member)
-        return AcceptJoinRequestMutation(success=success, member=member, join_request=join_request)
-class DeclineJoinRequestMutation(graphen.Mutation):
+            _join_request.accept = True
+            _join_request.save()
+            member = Member.objects.create(
+                user=_join_request.user_payed_cost.user,
+                association=_join_request.user_payed_cost.cost.form.association
+            )
+            AssociationMembership.objects.create(
+                membership_time=_join_request.user_payed_cost.cost.
+                membership_time,
+                member=member)
+        print(success)
+        return AcceptJoinRequestMutation(success=success,
+                                         member=member,
+                                         join_request=join_request)
+
+
+class DeclineJoinRequestMutation(graphene.Mutation):
     class Arguments:
-        join_request_id= graphene.ID()
+        join_request_id = graphene.ID()
 
     join_request = graphene.Field(JoinRequestType)
-    member=  graphene.Field(MemberType)
     success = graphene.Boolean()
+
     def mutate(root, info, join_request_id):
         _join_request = JoinRequest.objects.filter(id=join_request_id)
         success = False
-        if  have_association_permission(association=_join_request.user_payed_cost.cost.form.association,
+        if have_association_permission(association=_join_request.first().
+                                       user_payed_cost.cost.form.association,
                                        user=info.context.user,
                                        permission="delete_association_member"):
             _join_request.delete()
             _join_request = _join_request.first()
-            success=True
-    
-        return DeclineJoinRequestMutation(success=success, member=member, join_request=_join_request)
+            success = True
 
+        return DeclineJoinRequestMutation(success=success,
+                                          join_request=_join_request)
 
-
-       
 
 #global query and mutations
 class MembershipMutation(graphene.ObjectType):
@@ -390,6 +412,7 @@ class MembershipMutation(graphene.ObjectType):
     form_filled = FormFilledByUserMutation.Field()
     accept_join_request = AcceptJoinRequestMutation.Field()
     decline_join_request = DeclineJoinRequestMutation.Field()
+
 
 class MembershipQuery(graphene.ObjectType):
     get_form_meta = graphene.Field(FormMetaType, id=graphene.ID())
