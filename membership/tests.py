@@ -7,9 +7,9 @@ import textwrap
 from backend.schema import schema
 from accounts.models import (Association, AssociationType,
                              ExpectedAssociationMembersNumber,
-                             AssociationMembership, Member)
+                             AssociationMembership, Member, AssociationGroupMember)
 from .models import (Form, Association, BaseUser, Member, Costs, FieldType,
-                     Field, FieldData, UserPayedCosts, JoinRequest)
+                     Field, FieldData, UserPayedCosts, JoinRequest, AssociationGroupJoinRequest, AssociationGroup)
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import RequestFactory
 
@@ -26,6 +26,7 @@ class MembershipMutationsTestCase(TestCase):
             email="abderrahmanemustapa@mail.com",
             is_association_owner=False)
 
+
         cls.association_type = AssociationType.objects.create(
             name="sport", description="a sport activitys")
 
@@ -38,6 +39,17 @@ class MembershipMutationsTestCase(TestCase):
             association_min_max_numbers=cls.association_min_max_numbers,
             association_type=cls.association_type)
 
+        cls.group1 = AssociationGroup.objects.create(
+            name = "group1",
+            association = cls.association,
+            group_type = "D"
+        )
+
+        cls.group2 = AssociationGroup.objects.create(
+            name = "group2",
+            association = cls.association,
+            group_type = "D"
+        )
         cls.association_add_to_request = Association.objects.create(
             name="dz algeria 1",
             description="here we are new org",
@@ -329,10 +341,10 @@ class MembershipMutationsTestCase(TestCase):
         client = Client(schema, context_value=self.req)
 
         query = """mutation{
-            formFilled(userPayedCost:%s){
+            formFilled(userPayedCost:%s, groups:%s){
                 success
             }
-        }""" % (self.user_payed_cost.id)
+        }""" % (self.user_payed_cost.id,  [self.group1.id, self.group2.id])
 
         response = client.execute(query)
         assert 'errors' not in response
@@ -345,16 +357,22 @@ class MembershipMutationsTestCase(TestCase):
             member__user__key=self.user_payed_cost.user.key).exists()
         assert membership_exists
 
+        group_member1_count = AssociationGroupMember.objects.filter(group=self.group1, member__user=self.user_payed_cost.user).count()
+        assert group_member1_count == 1
+
+        group_member2_count = AssociationGroupMember.objects.filter(group=self.group2, member__user=self.user_payed_cost.user).count()
+        assert group_member2_count == 1
+
     def test_form_filled_by_user_to_join_request(self):
         client = Client(schema, context_value=self.req)
         Member.objects.create(user=self.user,
                               association=self.association_add_to_request,
                               is_owner=True)
         query = """mutation{
-            formFilled(userPayedCost:%s){
+            formFilled(userPayedCost:%s, groups:%s){
                 success
             }
-        }""" % (self.user_payed_cost_to_request.id)
+        }""" % (self.user_payed_cost_to_request.id, [self.group1.id, self.group2.id])
 
         response = client.execute(query)
         assert 'errors' not in response
@@ -364,6 +382,14 @@ class MembershipMutationsTestCase(TestCase):
 
         join_exists = joi_req.exists()
         assert join_exists == True
+
+        group_join_requests = AssociationGroupJoinRequest.objects.filter(user_payed_cost=self.user_payed_cost_to_request)
+
+        group_join_requests_exist = group_join_requests.exists()
+        assert group_join_requests_exist == True
+
+        group_join_requests_count = group_join_requests.count()
+        assert group_join_requests_count == 2
 
         join_request = joi_req.first()
 
@@ -375,7 +401,7 @@ class MembershipMutationsTestCase(TestCase):
 
         response = client.execute(query)
         assert 'errors' not in response
-
+        
         accepted_join_req = JoinRequest.objects.get(
             user_payed_cost=self.user_payed_cost_to_request).accept
         assert accepted_join_req == True
@@ -383,15 +409,15 @@ class MembershipMutationsTestCase(TestCase):
         member = Member.objects.filter(user= self.user,  association=self.association_add_to_request, is_owner=False)
         assert member.exists() == True
 
+        group_member1_count = AssociationGroupMember.objects.filter(group=self.group1, member__user=self.user_payed_cost.user).count()
+        assert group_member1_count == 1
 
-        membership = AssociationMembership.objects.filter(member=member)
+        group_member2_count = AssociationGroupMember.objects.filter(group=self.group2, member__user=self.user_payed_cost.user).count()
+        assert group_member2_count == 1
 
-        assert membership.exists() == True
+     
 
         
-        
-        
-
         query = """mutation{
             declineJoinRequest(joinRequestId:%s){
                 success,
@@ -405,3 +431,5 @@ class MembershipMutationsTestCase(TestCase):
         accepted_join_req_exists  = JoinRequest.objects.filter(user_payed_cost=self.user_payed_cost_to_request).exists()
         assert accepted_join_req_exists == False
 
+       
+        
