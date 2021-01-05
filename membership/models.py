@@ -36,6 +36,7 @@ class UserPayedCosts(models.Model):
 class JoinRequest(models.Model):
     user_payed_cost = models.ForeignKey(UserPayedCosts, verbose_name=_("user payed cost"), on_delete=models.CASCADE, null=True, blank=False)
     created_at = models.DateTimeField(auto_now_add=True, null=True)
+    accept = models.BooleanField(_("accept this join request"), default=False)
     updated_at = models.DateTimeField(auto_now=True, null=True)
 
 class FieldType(models.Model):
