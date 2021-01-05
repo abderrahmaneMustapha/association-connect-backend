@@ -363,6 +363,11 @@ class MembershipMutationsTestCase(TestCase):
         group_member2_count = AssociationGroupMember.objects.filter(group=self.group2, member__user=self.user_payed_cost.user).count()
         assert group_member2_count == 1
 
+
+        group_join_requests_exist = AssociationGroupJoinRequest.objects.filter(user_payed_cost=self.user_payed_cost_to_request).exists()
+        
+        assert  group_join_requests_exist == False
+
     def test_form_filled_by_user_to_join_request(self):
         client = Client(schema, context_value=self.req)
         Member.objects.create(user=self.user,
