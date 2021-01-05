@@ -18,6 +18,12 @@ class FormMetaType(DjangoObjectType):
         ]
 
 
+class FieldTypeType(DjangoObjectType):
+    class Meta:
+        model = FieldType
+        fields = ['name']
+
+
 class CostType(DjangoObjectType):
     class Meta:
         model = Costs
@@ -372,7 +378,6 @@ class AcceptJoinRequestMutation(graphene.Mutation):
                 membership_time=_join_request.user_payed_cost.cost.
                 membership_time,
                 member=member)
-        print(success)
         return AcceptJoinRequestMutation(success=success,
                                          member=member,
                                          join_request=join_request)
@@ -418,6 +423,9 @@ class MembershipQuery(graphene.ObjectType):
     get_form_meta = graphene.Field(FormMetaType, id=graphene.ID())
     get_form_by_association_slug = graphene.Field(FormMetaType,
                                                   slug=graphene.String())
+
+    get_form_field_type = graphene.List(FieldTypeType)
+
     get_form_showed_fields = graphene.List(FormFieldType,
                                            slug=graphene.String())
     get_form_all_fields = graphene.List(FormFieldType, slug=graphene.String())
@@ -426,8 +434,28 @@ class MembershipQuery(graphene.ObjectType):
                                              form_id=graphene.ID())
     get_form_showed_fields_data = graphene.List(FieldDataType,
                                                 slug=graphene.String())
+    get_form_all_fields_user_data = graphene.List(FieldDataType,
+                                                  slug=graphene.String(),
+                                                  key=graphene.String())
 
     get_form_all_costs = graphene.List(CostType, slug=graphene.String())
+    get_form_showed_costs = graphene.List(CostType, slug=graphene.String())
+
+    get_association_form_filled = graphene.List(FormFilledType,
+                                                slug=graphene.String())
+    get_association_form_filled_by_user = graphene.List(FormFilledType,
+                                                        slug=graphene.String(),
+                                                        key=graphene.String())
+
+    get_user_association_payed_costs = graphene.List(UserPayedCostType,
+                                                     slug=graphene.String())
+
+    get_user_accepted_join_request = graphene.List(JoinRequestType,
+                                                   slug=graphene.String())
+    get_user_declined_join_request = graphene.List(JoinRequestType,
+                                                   slug=graphene.String())
+    get_user_all_join_request = graphene.List(JoinRequestType,
+                                              slug=graphene.String())
 
     def resolve_get_form_meta(root, info, id):
         return Form.objects.get(id=id)
@@ -442,11 +470,46 @@ class MembershipQuery(graphene.ObjectType):
         return Form.objects.filter(association__slug=slug)
 
     def resolve_get_form_showed_fields_data(root, info, form_id):
-        return FieldData.objects.filter(form__id=form_id, show_in_form=True)
+        return FieldData.objects.filter(form__id=form_id,
+                                        fieldshow_in_form=True)
 
     def resolve_get_form_all_fields_data(root, info, form_id):
-        return FieldData.objects.filter(form__id=form_id,
-                                        field__show_in_form=True)
+        return FieldData.objects.filter(form__id=form_id)
+
+    def resolve_get_form_all_fields_user_data(root, info, form_id, key):
+        return FieldData.objects.filter(form__id=form_id, user__key=key)
 
     def resolve_get_form_all_costs(root, info, slug):
         return Costs.objects.filter(form__association__slug=slug)
+
+    def resolve_get_form_showed_costs(root, info, slug):
+        return Costs.objects.filter(form__association__slug=slug,
+                                    show_in_form=True)
+
+    def resolve_get_user_association_payed_costs(root, info, slug):
+        return UserPayedCosts.objects.filter(
+            cost__form__association__slug=slug)
+
+    def resolve_get_form_field_type(root, info):
+        return FieldType.object.all()
+
+    def resolve_get_association_form_filled(root, info, slug):
+        return FormFilledByUser.objects.filter(
+            user_payed_cost__cost__form__association__slug=slug)
+
+    def resolve_get_association_form_filled_by_user(root, info, slug, key):
+        return FormFilledByUser.objects.filter(
+            user_payed_cost__cost__form__association__slug=slug,
+            user_payed_cost__user__key=key)
+
+    def resolve_get_user_accepted_join_request(root, info, slug):
+        return JoinRequest.objects.filter(
+            user_payed_cost__cost__form__association__slug=slug, accept=False)
+
+    def resolve_get_user_declined_join_request(root, info, slug):
+        return JoinRequest.objects.filter(
+            user_payed_cost__cost__form__association__slug=slug, accept=True)
+
+    def resolve_get_user_all_join_request(root, info, slug):
+        return JoinRequest.objects.filter(
+            user_payed_cost__cost__form__association__slug=slug)
