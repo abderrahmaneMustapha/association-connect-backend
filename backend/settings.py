@@ -25,7 +25,7 @@ SECRET_KEY = 'oiazbs59my@xn^v@ha1qv%z3g2-6!qx%r%j#f#xf=4g*7*4qit'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['assoconnect.herokuapp.com']
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 
