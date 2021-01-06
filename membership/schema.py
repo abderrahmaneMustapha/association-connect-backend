@@ -6,7 +6,7 @@ from accounts.models import AssociationGroupMember
 from accounts.schema import BaseUserType, MemberType
 from .models import Form, AssociationGroupJoinRequest, Association, JoinRequest, Member, AssociationMembership, Costs, UserPayedCosts, BaseUser, Field, FieldType, FieldData, FormFilledByUser, AssociationGroup
 from accounts.utils import have_association_permission
-
+from django.template.defaultfilters import slugify
 
 # object types
 class FormMetaType(DjangoObjectType):
@@ -260,6 +260,7 @@ class AddFormFieldsMutation(graphene.Mutation):
                 _field_type = FieldType.objects.get(name=_input.type)
                 _field = Field.objects.create(form=_form,
                                               label=_input.label,
+                                              name=slugify(_input.label),
                                               description=_input.description,
                                               placeholder=_input.placeholder,
                                               show_in_form=_input.show_in_form,
@@ -295,6 +296,7 @@ class AddFormFieldMutation(graphene.Mutation):
             Field.objects.filter(form=_form).delete()
             _field = Field.objects.create(form=_form,
                                           label=inputs.label,
+                                          name=slugify(inputs.label),
                                           description=inputs.description,
                                           placeholder=inputs.placeholder,
                                           show_in_form=inputs.show_in_form,
