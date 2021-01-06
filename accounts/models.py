@@ -118,7 +118,8 @@ class Association(models.Model):
             ('view_association_member', 'View association member'),
             ('manage_group', 'Manage group'),
             ('manage_association_permissions', 'Manage association permissions'),
-            ('manage_association_form', 'Manage form')
+            ('manage_association_form', 'Manage form'),
+            ('manage_association_payment', 'Manage association payment')
         )
 
 
