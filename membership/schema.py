@@ -8,6 +8,7 @@ from .models import Form, AssociationGroupJoinRequest, Association, JoinRequest,
 from accounts.utils import have_association_permission
 from django.template.defaultfilters import slugify
 
+
 # object types
 class FormMetaType(DjangoObjectType):
     class Meta:
@@ -337,29 +338,33 @@ class AddFieldData(graphene.Mutation):
 class FormFilledByUserMutation(graphene.Mutation):
     class Arguments:
         user_payed_cost = graphene.ID()
-        groups  =  graphene.List(graphene.ID, required=False)
+        groups = graphene.List(graphene.ID, required=False)
 
     filled_form = graphene.Field(FormFilledType)
     success = graphene.Boolean()
 
-    def mutate(root, info ,user_payed_cost,  groups=[]):
-        
+    def mutate(root, info, user_payed_cost, groups=[]):
+
         _user_payed_cost = UserPayedCosts.objects.get(id=user_payed_cost)
-       
+
         _form_filled = FormFilledByUser.objects.create(
             user_payed_cost=_user_payed_cost)
         _form_filled.full_clean()
 
-        add_to_request =  _user_payed_cost.cost.form.add_to_request 
-        if add_to_request :
-            for group_id in groups :
+        add_to_request = _user_payed_cost.cost.form.add_to_request
+        if add_to_request:
+            for group_id in groups:
                 group = AssociationGroup.objects.get(id=group_id)
-                AssociationGroupJoinRequest.objects.create(group=group, user_payed_cost=_user_payed_cost)
+                AssociationGroupJoinRequest.objects.create(
+                    group=group, user_payed_cost=_user_payed_cost)
         else:
-            for group_id in groups :
-                member = Member.objects.get(user=_user_payed_cost.user, association=_user_payed_cost.cost.form.association)  
+            for group_id in groups:
+                member = Member.objects.get(
+                    user=_user_payed_cost.user,
+                    association=_user_payed_cost.cost.form.association)
                 group = AssociationGroup.objects.get(id=group_id)
-                AssociationGroupMember.objects.create(member=member, group=group)
+                AssociationGroupMember.objects.create(member=member,
+                                                      group=group)
         success = True
 
         return FormFilledByUserMutation(filled_form=_form_filled,
@@ -393,10 +398,12 @@ class AcceptJoinRequestMutation(graphene.Mutation):
                 membership_time=_join_request.user_payed_cost.cost.
                 membership_time,
                 member=member)
-            
-            groups_join_reqs = AssociationGroupJoinRequest.objects.filter(user_payed_cost=_join_request.user_payed_cost)
+
+            groups_join_reqs = AssociationGroupJoinRequest.objects.filter(
+                user_payed_cost=_join_request.user_payed_cost)
             for group_joi_req in groups_join_reqs:
-                AssociationGroupMember.objects.create(member=member, group=group_joi_req.group)
+                AssociationGroupMember.objects.create(
+                    member=member, group=group_joi_req.group)
 
         return AcceptJoinRequestMutation(success=success,
                                          member=member,
@@ -481,55 +488,135 @@ class MembershipQuery(graphene.ObjectType):
         return Form.objects.get(id=id)
 
     def resolve_get_form_by_association_slug(root, info, slug):
-        return Form.objects.filter(association__slug=slug).first()
+        member = Member.objects.get(user=info.context.user)
+
+        if member.association.slug == slug and have_association_permission(
+                member.association, member.user, "manage_association_form"):
+
+            return Form.objects.get(association__slug=slug)
+
+        else:
+
+            return None
 
     def resolve_get_form_showed_fields(root, info, slug):
-        return Form.objects.filter(association__slug=slug, show_in_form=True)
+        member = Member.objects.get(user=info.context.user)
+
+        if member.association.slug == slug and have_association_permission(
+                member.association, member.user, "manage_association_form"):
+            return Form.objects.filter(association__slug=slug,
+                                       show_in_form=True)
+        else:
+            return None
 
     def resolve_get_form_all_fields(root, info, slug):
-        return Form.objects.filter(association__slug=slug)
+        member = Member.objects.get(user=info.context.user)
+
+        if member.association.slug == slug and have_association_permission(
+                member.association, member.user, "manage_association_form"):
+            return Form.objects.filter(association__slug=slug)
+        else:
+            return None
 
     def resolve_get_form_showed_fields_data(root, info, form_id):
+
         return FieldData.objects.filter(form__id=form_id,
                                         fieldshow_in_form=True)
 
     def resolve_get_form_all_fields_data(root, info, form_id):
-        return FieldData.objects.filter(form__id=form_id)
+        member = Member.objects.get(user=info.context.user)
+
+        if have_association_permission(member.association, member.user,
+                                       "manage_association_form"):
+
+            return FieldData.objects.filter(form__id=form_id)
+
+        else:
+            return None
 
     def resolve_get_form_all_fields_user_data(root, info, form_id, key):
-        return FieldData.objects.filter(form__id=form_id, user__key=key)
+        member = Member.objects.get(user=info.context.user)
+
+        if have_association_permission(member.association, member.user,
+                                       "manage_association_form"):
+            return FieldData.objects.filter(form__id=form_id, user__key=key)
+        else:
+            return None
 
     def resolve_get_form_all_costs(root, info, slug):
-        return Costs.objects.filter(form__association__slug=slug)
+        member = Member.objects.get(user=info.context.user)
+
+        if have_association_permission(member.association, member.user,
+                                       "manage_association_form"):
+            return Costs.objects.filter(form__association__slug=slug)
+        else:
+            return None
 
     def resolve_get_form_showed_costs(root, info, slug):
         return Costs.objects.filter(form__association__slug=slug,
                                     show_in_form=True)
 
     def resolve_get_user_association_payed_costs(root, info, slug):
-        return UserPayedCosts.objects.filter(
-            cost__form__association__slug=slug)
+        member = Member.objects.get(user=info.context.user)
+
+        if have_association_permission(member.association, member.user,
+                                       "manage_association_payment"):
+            return UserPayedCosts.objects.filter(
+                cost__form__association__slug=slug)
+        else:
+            return None
 
     def resolve_get_form_field_type(root, info):
         return FieldType.object.all()
 
     def resolve_get_association_form_filled(root, info, slug):
-        return FormFilledByUser.objects.filter(
+        member = Member.objects.get(user=info.context.user)
+
+        if have_association_permission(member.association, member.user,
+                                       "manage_association_form"):
+            return FormFilledByUser.objects.filter(
             user_payed_cost__cost__form__association__slug=slug)
+        else:
+            return None
+
 
     def resolve_get_association_form_filled_by_user(root, info, slug, key):
-        return FormFilledByUser.objects.filter(
-            user_payed_cost__cost__form__association__slug=slug,
-            user_payed_cost__user__key=key)
+        member = Member.objects.get(user=info.context.user)
+
+        if have_association_permission(member.association, member.user,
+                                       "manage_association_form"):
+            return FormFilledByUser.objects.filter(
+                user_payed_cost__cost__form__association__slug=slug,
+                user_payed_cost__user__key=key)
+        else:
+            return None
 
     def resolve_get_user_accepted_join_request(root, info, slug):
-        return JoinRequest.objects.filter(
-            user_payed_cost__cost__form__association__slug=slug, accept=False)
+        member = Member.objects.get(user=info.context.user)
+
+        if have_association_permission(member.association, member.user,
+                                       "add_association_member"):
+            return JoinRequest.objects.filter(
+                user_payed_cost__cost__form__association__slug=slug, accept=True)
+        else:
+            return None
 
     def resolve_get_user_declined_join_request(root, info, slug):
-        return JoinRequest.objects.filter(
-            user_payed_cost__cost__form__association__slug=slug, accept=True)
+        member = Member.objects.get(user=info.context.user)
+
+        if have_association_permission(member.association, member.user,
+                                       "add_association_member"):
+            return JoinRequest.objects.filter(
+                user_payed_cost__cost__form__association__slug=slug, accept=False)
+        else:
+            return None
 
     def resolve_get_user_all_join_request(root, info, slug):
-        return JoinRequest.objects.filter(
-            user_payed_cost__cost__form__association__slug=slug)
+        member = Member.objects.get(user=info.context.user)
+
+        if have_association_permission(member.association, member.user,
+                                       "add_association_member"):
+            return JoinRequest.objects.filter(
+                user_payed_cost__cost__form__association__slug=slug)
+        else:
+            return None
