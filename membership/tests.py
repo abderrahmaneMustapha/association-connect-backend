@@ -284,6 +284,9 @@ class MembershipMutationsTestCase(TestCase):
         count_fields = Field.objects.filter(form=self.form).count()
         assert count_fields == 1
 
+        name_field = Field.objects.filter(form=self.form).first().name 
+        assert name_field == label
+
     def test_add_fields_to_form_mutation(self):
         client = Client(schema, context_value=self.req)
         Member.objects.create(user=self.user,
