@@ -47,6 +47,7 @@ class FieldType(models.Model):
 class Field(models.Model):
     form = models.ForeignKey(Form, verbose_name=_("form"), on_delete=models.CASCADE)
     label = models.CharField("field label", max_length=125)
+    name  = models.SlugField("field name", max_length=125, null=True, blank=False)
     description = models.TextField("field description", max_length=500)
     placeholder = models.CharField("field placeholder", max_length=125)
     show_in_form = models.BooleanField("show field in form", default=True)
@@ -86,3 +87,9 @@ class AssociationGroupJoinRequest(models.Model):
     accept = models.BooleanField(_("accept this join request"), default=False)
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)
+
+    def save(self, *args, **kwargs):
+        if self.group.association == self.user_payed_cost.cost.form.association:
+            raise Exception("You can not join this request")
+        super().save(*args, **kwargs)
+        
