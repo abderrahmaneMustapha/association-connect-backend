@@ -401,6 +401,7 @@ class AccountsMutationsTestCase(TestCase):
 
         for group in groups:
             assert group['groupType'] == "S"
+    
     def test_get_all_associations_dynamique_groups(self):
         client = Client(schema, context_value=self.req)
         Member.objects.filter(user=self.user, association=self.association1).update(is_owner=True)
@@ -424,6 +425,22 @@ class AccountsMutationsTestCase(TestCase):
         for group in groups:
             assert group['groupType'] == "D"
 
+    def test_get_associations_group_by_id(self):
+        client = Client(schema, context_value=self.req)
+         
+        Member.objects.filter(user=self.user, association=self.association1).update(is_owner=True)
+        query = """
+            query{
+                getAssociationsGroupById(id:%s){
+                    id,
+                    name,
+                    association{id,name},
+                    groupType
+                }
+            }
+        """ %(self.group1.id)
 
+        response = client.execute(query)
+        assert 'errors' not in response
         
   
