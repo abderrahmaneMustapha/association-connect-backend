@@ -510,7 +510,7 @@ class AccountsQuery(graphene.ObjectType):
         member = Member.objects.filter(user=info.context.user,
                                     association__slug=slug).first()
 
-        print(member.is_owner)
+
         if have_association_permission(member.association, member.user,
                                        'manage_group'):
             return AssociationGroup.objects.filter(association__slug=slug, group_type="S")
