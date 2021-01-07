@@ -539,17 +539,16 @@ class AccountsQuery(graphene.ObjectType):
             return None
 
     def resolve_get_associations_members(root, info, slug):
-        member = Member.objects.filter(user=info.context.user,
-                                       association__slug=slug)
-        if have_association_permission(member.association, member.user,
+        member = Member.objects.filter(association__slug=slug)
+        if have_association_permission(member.first().association, member.first().user,
                                        "view_association_member"):
-            return Member.objects.filter(association__slug=slug)
+            return member
         else:
             return None
 
     def resolve_get_association_member_by_id(root, info, id):
-        member = Member.object.filter(id=id)
-        super_member = Member.object.get(user=info.context.user, association=member.association)
+        member = Member.objects.filter(id=id)
+        super_member = Member.objects.get(user=info.context.user, association=member.first().association)
         if member.exists()  or have_association_permission( super_member.association,  super_member.user,
                                        "view_association_member"):
             return member.first()
