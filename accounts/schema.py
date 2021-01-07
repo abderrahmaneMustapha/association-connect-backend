@@ -473,7 +473,7 @@ class AccountsQuery(graphene.ObjectType):
     get_association_by_slug = graphene.Field(
         AssociationType, slug=graphene.String(required=True))
 
-    get_all_associations = graphene.Field(AssociationType)
+    get_all_associations = graphene.List(AssociationType)
 
     get_associations_group_by_id = graphene.Field(
         AssociationGroupType, id=graphene.ID(required=True))
