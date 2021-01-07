@@ -507,22 +507,52 @@ class AccountsQuery(graphene.ObjectType):
         return Association.objects.all()
 
     def resolve_get_all_associations_statique_groups(root, info, slug):
-        return Association.objects.filter(slug=slug, group_type="S")
+        member = Member.objects.get(user=info.context.user,
+                                    association__slug=slug)
+        if have_association_permission(member.association, member.user,
+                                       'manage_group'):
+            return Association.objects.filter(slug=slug, group_type="S")
+        else:
+            return None
 
     def resolve_get_all_associations_dynamique_groups(root, info, slug):
         return Association.objects.filter(slug=slug, group_type="D")
 
     def resolve_get_all_associations_groups(root, info, slug):
-        return Association.objects.filter(slug=slug)
+        member = Member.objects.get(user=info.context.user,
+                                    association__slug=slug)
+        if have_association_permission(member.association, member.user,
+                                       'manage_group'):
+            return Association.objects.filter(slug=slug)
+        else:
+            return None
 
     def resolve_get_associations_group_by_id(root, info, id):
-        return AssociationGroup.objects.get(pk=id)
+        group = AssociationGroup.objects.get(pk=id)
+        member = Member.objects.filter(user=info.context.user,
+                                       association=group.association).count()
+        if member == 1:
+            return group
+        else:
+            return None
 
     def resolve_get_associations_members(root, info, slug):
-        return Member.objects.filter(association__slug=slug)
+        member = Member.objects.filter(user=info.context.user,
+                                       association__slug=slug)
+        if have_association_permission(member.association, member.user,
+                                       "view_association_member"):
+            return Member.objects.filter(association__slug=slug)
+        else:
+            return None
 
     def resolve_get_association_member_by_id(root, info, id):
-        return Member.object.get(id=id)
+        member = Member.object.filter(id=id)
+        super_member = Member.object.get(user=info.context.user, association=member.association)
+        if member.exists()  or have_association_permission( super_member.association,  super_member.user,
+                                       "view_association_member"):
+            return member.first()
+        else:
+            return None
 
     def resolve_get_all_association_object_permissions(root, info):
         content_type = ContentType.objects.get_for_model(Association)
