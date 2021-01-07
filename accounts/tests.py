@@ -38,6 +38,18 @@ class AccountsMutationsTestCase(TestCase):
                                                    association=cls.association,
                                                    group_type="S")
 
+        cls.group1 = AssociationGroup.objects.create(name="Novices",
+                                                   association=cls.association1,
+                                                   group_type="S")
+        
+        cls.group2 = AssociationGroup.objects.create(name="Minecraft players",
+                                                   association=cls.association1,
+                                                   group_type="S")
+        
+        cls.group3 = AssociationGroup.objects.create(name="Dota players",
+                                                   association=cls.association1,
+                                                   group_type="S")
+
         cls.user = BaseUser.objects.create(
             first_name="toumi",
             last_name="abderrahmane",
@@ -52,6 +64,8 @@ class AccountsMutationsTestCase(TestCase):
 
         cls.delete_member = Member.objects.create(user=cls.delete_user,
                                                   association=cls.association)
+        
+        cls.another_member = Member.objects.creat(user=cls.user, association=cls.association1)
 
         cls.archive_user = BaseUser.objects.create(
             first_name="toumiarchive_",
@@ -342,3 +356,18 @@ class AccountsMutationsTestCase(TestCase):
 
         response = client.execute(query)
         assert 'errors' not in response
+
+    def test_get_all_associations(self):
+        client = Client(schema, context_value=self.req)
+        query = """
+            query{
+                getAllAssociations{
+                    id,
+                }
+            }
+        """
+
+        response = client.execute(query)
+        assert 'errors' not in response
+
+        assert [{'id': '1'}, {'id': '2'}] == response['data']['getAllAssociations']
