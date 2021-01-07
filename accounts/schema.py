@@ -225,7 +225,7 @@ class AssociationDeleteMutation(graphene.Mutation):
     association = graphene.Field(AssociationType)
 
     def mutate(root, info, id):
-        super_member = Member.objects.get(user=info.context.user).is_owner
+        super_member = Member.objects.filter(user=info.context.user, association__id=id).first().is_owner
         association_ = None
         success = False
         if super_member:
@@ -507,11 +507,13 @@ class AccountsQuery(graphene.ObjectType):
         return Association.objects.all()
 
     def resolve_get_all_associations_statique_groups(root, info, slug):
-        member = Member.objects.get(user=info.context.user,
-                                    association__slug=slug)
+        member = Member.objects.filter(user=info.context.user,
+                                    association__slug=slug).first()
+
+        print(member.is_owner)
         if have_association_permission(member.association, member.user,
                                        'manage_group'):
-            return Association.objects.filter(slug=slug, group_type="S")
+            return AssociationGroup.objects.filter(association__slug=slug, group_type="S")
         else:
             return None
 
