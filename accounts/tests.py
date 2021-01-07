@@ -48,7 +48,11 @@ class AccountsMutationsTestCase(TestCase):
         
         cls.group3 = AssociationGroup.objects.create(name="Dota players",
                                                    association=cls.association1,
-                                                   group_type="S")
+                                                   group_type="D")
+
+        cls.group3 = AssociationGroup.objects.create(name="LOL players",
+                                                   association=cls.association1,
+                                                   group_type="D")
 
         cls.user = BaseUser.objects.create(
             first_name="toumi",
@@ -392,8 +396,34 @@ class AccountsMutationsTestCase(TestCase):
         response = client.execute(query)
         assert 'errors' not in response
 
-        data =  response['data']['getAllAssociationsStatiqueGroups']
-        assert data is not None
+        groups =  response['data']['getAllAssociationsStatiqueGroups']
+        assert groups is not None
+
+        for group in groups:
+            assert group['groupType'] == "S"
+    def test_get_all_associations_dynamique_groups(self):
+        client = Client(schema, context_value=self.req)
+        Member.objects.filter(user=self.user, association=self.association1).update(is_owner=True)
+        query = """
+            query{
+                getAllAssociationsDynamiqueGroups(slug:\"%s\"){
+                    id,
+                    name,
+                    association{id,name},
+                    groupType
+                }
+            }
+        """ %(self.association1.slug)
+
+        response = client.execute(query)
+        assert 'errors' not in response
+
+        groups =  response['data']['getAllAssociationsDynamiqueGroups']
+        assert groups is not None
+
+        for group in groups:
+            assert group['groupType'] == "D"
+
 
         
   
