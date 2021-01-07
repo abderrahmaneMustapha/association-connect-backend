@@ -488,9 +488,8 @@ class MembershipQuery(graphene.ObjectType):
         return Form.objects.get(id=id)
 
     def resolve_get_form_by_association_slug(root, info, slug):
-        member = Member.objects.get(user=info.context.user)
-
-        if member.association.slug == slug and have_association_permission(
+        member = Member.objects.get(user=info.context.user, association__slug=slug)
+        if  have_association_permission(
                 member.association, member.user, "manage_association_form"):
 
             return Form.objects.get(association__slug=slug)
@@ -500,9 +499,8 @@ class MembershipQuery(graphene.ObjectType):
             return None
 
     def resolve_get_form_showed_fields(root, info, slug):
-        member = Member.objects.get(user=info.context.user)
-
-        if member.association.slug == slug and have_association_permission(
+        member = Member.objects.get(user=info.context.user, association__slug=slug)
+        if have_association_permission(
                 member.association, member.user, "manage_association_form"):
             return Form.objects.filter(association__slug=slug,
                                        show_in_form=True)
@@ -510,9 +508,9 @@ class MembershipQuery(graphene.ObjectType):
             return None
 
     def resolve_get_form_all_fields(root, info, slug):
-        member = Member.objects.get(user=info.context.user)
+        member = Member.objects.get(user=info.context.user, association__slug=slug)
 
-        if member.association.slug == slug and have_association_permission(
+        if have_association_permission(
                 member.association, member.user, "manage_association_form"):
             return Form.objects.filter(association__slug=slug)
         else:
@@ -524,7 +522,8 @@ class MembershipQuery(graphene.ObjectType):
                                         fieldshow_in_form=True)
 
     def resolve_get_form_all_fields_data(root, info, form_id):
-        member = Member.objects.get(user=info.context.user)
+        form = Form.objects.get(id=form_id)
+        member = Member.objects.get(user=info.context.user, association=form.association)
 
         if have_association_permission(member.association, member.user,
                                        "manage_association_form"):
@@ -535,8 +534,9 @@ class MembershipQuery(graphene.ObjectType):
             return None
 
     def resolve_get_form_all_fields_user_data(root, info, form_id, key):
-        member = Member.objects.get(user=info.context.user)
-
+        form = Form.objects.get(id=form_id)
+        member = Member.objects.get(user=info.context.user, association=form.association)
+        
         if have_association_permission(member.association, member.user,
                                        "manage_association_form"):
             return FieldData.objects.filter(form__id=form_id, user__key=key)
@@ -544,7 +544,7 @@ class MembershipQuery(graphene.ObjectType):
             return None
 
     def resolve_get_form_all_costs(root, info, slug):
-        member = Member.objects.get(user=info.context.user)
+        member = Member.objects.get(user=info.context.user, association__slug=slug)
 
         if have_association_permission(member.association, member.user,
                                        "manage_association_form"):
@@ -557,7 +557,7 @@ class MembershipQuery(graphene.ObjectType):
                                     show_in_form=True)
 
     def resolve_get_user_association_payed_costs(root, info, slug):
-        member = Member.objects.get(user=info.context.user)
+        member = Member.objects.get(user=info.context.user, association__slug=slug)
 
         if have_association_permission(member.association, member.user,
                                        "manage_association_payment"):
@@ -570,7 +570,7 @@ class MembershipQuery(graphene.ObjectType):
         return FieldType.object.all()
 
     def resolve_get_association_form_filled(root, info, slug):
-        member = Member.objects.get(user=info.context.user)
+        member = Member.objects.get(user=info.context.user, association__slug=slug)
 
         if have_association_permission(member.association, member.user,
                                        "manage_association_form"):
@@ -581,7 +581,7 @@ class MembershipQuery(graphene.ObjectType):
 
 
     def resolve_get_association_form_filled_by_user(root, info, slug, key):
-        member = Member.objects.get(user=info.context.user)
+        member = Member.objects.get(user=info.context.user, association__slug=slug)
 
         if have_association_permission(member.association, member.user,
                                        "manage_association_form"):
@@ -592,7 +592,7 @@ class MembershipQuery(graphene.ObjectType):
             return None
 
     def resolve_get_user_accepted_join_request(root, info, slug):
-        member = Member.objects.get(user=info.context.user)
+        member = Member.objects.get(user=info.context.user, association__slug=slug)
 
         if have_association_permission(member.association, member.user,
                                        "add_association_member"):
@@ -602,7 +602,7 @@ class MembershipQuery(graphene.ObjectType):
             return None
 
     def resolve_get_user_declined_join_request(root, info, slug):
-        member = Member.objects.get(user=info.context.user)
+        member = Member.objects.get(user=info.context.user, association__slug=slug)
 
         if have_association_permission(member.association, member.user,
                                        "add_association_member"):
@@ -612,7 +612,7 @@ class MembershipQuery(graphene.ObjectType):
             return None
 
     def resolve_get_user_all_join_request(root, info, slug):
-        member = Member.objects.get(user=info.context.user)
+        member = Member.objects.get(user=info.context.user, association__slug=slug)
 
         if have_association_permission(member.association, member.user,
                                        "add_association_member"):
