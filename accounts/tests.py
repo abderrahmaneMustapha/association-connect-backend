@@ -26,6 +26,13 @@ class AccountsMutationsTestCase(TestCase):
             description="we are dz algeria a perefect organizatoin",
             association_min_max_numbers=cls.association_min_max_numbers,
             association_type=cls.association_type)
+        
+        cls.association1 = Association.objects.create(
+            name="dz el kheir",
+            slug="dz-el-kheir",
+            description="organization description 1",
+            association_min_max_numbers=cls.association_min_max_numbers,
+            association_type=cls.association_type)
 
         cls.group = AssociationGroup.objects.create(name="Leader",
                                                    association=cls.association,
@@ -59,6 +66,7 @@ class AccountsMutationsTestCase(TestCase):
         cls.req.user = cls.user
 
 
+    # mutations tests
     def test_add_member_by_admin(self):
         client = Client(schema, context_value=self.req)
 
@@ -317,3 +325,20 @@ class AccountsMutationsTestCase(TestCase):
 
         assert user.has_perm(permission, association) == False
 
+    # queries tests
+    def test_get_association_by_slug(self):
+        client = Client(schema, context_value=self.req)
+
+        query = """ 
+            query{
+                getAssociationBySlug(slug:\"%s\"){
+                    id,
+                    slug,
+                    name, 
+                    description,
+                }
+            }
+        """ %(self.association1.slug)
+
+        response = client.execute(query)
+        assert 'errors' not in response
