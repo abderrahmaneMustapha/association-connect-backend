@@ -443,4 +443,45 @@ class AccountsMutationsTestCase(TestCase):
         response = client.execute(query)
         assert 'errors' not in response
         
+
+    def test_get_associations_members(self):
+        client = Client(schema, context_value=self.req)
+         
+        Member.objects.filter(user=self.user, association=self.association1).update(is_owner=True)
+        Member.objects.filter(user=self.delete_user, association=self.association1).update(is_owner=True)
+     
+        query = """
+            query{
+                getAssociationsMembers(slug:\"%s\"){
+                    id,
+                    user{key, email}
+                }
+            }
+        """ %(self.association1.slug)
+
+        response = client.execute(query)
+
+        assert 'errors' not in response
+
+    def test_get_association_member_by_id(self):
+        client = Client(schema, context_value=self.req)
+         
+        Member.objects.filter(user=self.user, association=self.association1).update(is_owner=True)
+        member = Member.objects.create(user=self.delete_user, association=self.association1)
+     
+        query = """
+            query{
+                getAssociationMemberById(id:%s){
+                    id,
+                    user{key, email}
+                }
+            }
+        """ %(member.id)
+
+        response = client.execute(query)
+        assert 'errors' not in response
+        data = response['data']['getAssociationMemberById']
+
+        assert data is not None
+
   
