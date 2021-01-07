@@ -65,7 +65,7 @@ class AccountsMutationsTestCase(TestCase):
         cls.delete_member = Member.objects.create(user=cls.delete_user,
                                                   association=cls.association)
         
-        cls.another_member = Member.objects.creat(user=cls.user, association=cls.association1)
+        cls.another_member = Member.objects.create(user=cls.user, association=cls.association1)
 
         cls.archive_user = BaseUser.objects.create(
             first_name="toumiarchive_",
@@ -133,8 +133,9 @@ class AccountsMutationsTestCase(TestCase):
 
         member_exists = Member.objects.filter(user=self.user).exists()
         assert member_exists == True
-
-        member = Member.objects.get(user=self.user)
+        
+        association_id = response['data']['createAssociation']['association']['id']
+        member = Member.objects.filter(user=self.user, association__id=association_id).last()
         assert member.is_owner
 
         assert member.user.is_association_owner
@@ -155,8 +156,9 @@ class AccountsMutationsTestCase(TestCase):
 
         member_exists = Member.objects.filter(user=self.user).exists()
         assert member_exists == True
-
-        member = Member.objects.get(user=self.user)
+       
+        association_id = response['data']['createAssociationNoRegister']['association']['id']
+        member = Member.objects.get(user=self.user, association__id=association_id)        
         assert member.is_owner
 
         assert member.user.is_association_owner
@@ -371,3 +373,27 @@ class AccountsMutationsTestCase(TestCase):
         assert 'errors' not in response
 
         assert [{'id': '1'}, {'id': '2'}] == response['data']['getAllAssociations']
+
+    def test_get_all_associations_statique_groups(self):
+
+        client = Client(schema, context_value=self.req)
+        Member.objects.filter(user=self.user, association=self.association1).update(is_owner=True)
+        query = """
+            query{
+                getAllAssociationsStatiqueGroups(slug:\"%s\"){
+                    id,
+                    name,
+                    association{id,name},
+                    groupType
+                }
+            }
+        """ %(self.association1.slug)
+
+        response = client.execute(query)
+        assert 'errors' not in response
+
+        data =  response['data']['getAllAssociationsStatiqueGroups']
+        assert data is not None
+
+        
+  
