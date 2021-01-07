@@ -518,7 +518,7 @@ class AccountsQuery(graphene.ObjectType):
             return None
 
     def resolve_get_all_associations_dynamique_groups(root, info, slug):
-        return AssociationGroup.objects.filter(slug=slug, group_type="D")
+        return AssociationGroup.objects.filter(association__slug=slug, group_type="D")
 
     def resolve_get_all_associations_groups(root, info, slug):
         member = Member.objects.get(user=info.context.user,
