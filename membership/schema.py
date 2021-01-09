@@ -492,7 +492,7 @@ class MembershipQuery(graphene.ObjectType):
         if  have_association_permission(
                 member.association, member.user, "manage_association_form"):
 
-            return Form.objects.get(association__slug=slug)
+            return Form.objects.filter(association__slug=slug).first()
 
         else:
 
