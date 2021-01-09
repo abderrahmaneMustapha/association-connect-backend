@@ -461,12 +461,16 @@ class MembershipMutationsTestCase(TestCase):
         data = response['data']['getFormMeta']
         assert data is not None 
 
-    def get_form_by_association_slug(self):
+    def test_get_form_by_association_slug(self):
         client = Client(schema, context_value=self.req) 
-        
+        self.association.slug = "asso-conn"
+        self.association.save()
+        Member.objects.create(user=self.user,
+                              association=self.association,
+                              is_owner=True)
         query = """
            query{
-                getFormByAssociationSlug(slug:%s){
+                getFormByAssociationSlug(slug:\"%s\"){
                     id
                     title
                     description
@@ -479,4 +483,28 @@ class MembershipMutationsTestCase(TestCase):
         assert 'errors' not in response
 
         data = response['data']['getFormByAssociationSlug']
+        assert data is not None
+
+    def test_get_form_showed_fields(self):
+
+        client = Client(schema, context_value=self.req) 
+        Member.objects.create(user=self.user,
+                              association=self.association,
+                              is_owner=True)
+        query = """
+           query {
+                getFormShowedFields(slug:\"%s\"){
+                    id
+                    label
+                    description
+                    placeholder
+                }
+            }
+        """ %(self.association.slug)
+
+        response = client.execute(query)
+        print(response)
+        assert 'errors' not in response
+
+        data = response['data']['getFormShowedFields']
         assert data is not None
