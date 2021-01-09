@@ -203,6 +203,7 @@ class MembershipMutationsTestCase(TestCase):
         assert "{'email': ['Enter a valid email address.']}" in response[
             'errors'][0]['message']
 
+    # mutations
     def test_add_membership_cost_mutation(self):
         client = Client(schema, context_value=self.req)
         Member.objects.create(user=self.user,
@@ -439,5 +440,23 @@ class MembershipMutationsTestCase(TestCase):
         accepted_join_req_exists  = JoinRequest.objects.filter(user_payed_cost=self.user_payed_cost_to_request).exists()
         assert accepted_join_req_exists == False
 
-       
+    # query
+    def test_get_form_meta(self):
+        client = Client(schema, context_value=self.req) 
         
+        query = """
+           query{
+                getFormMeta(id:%s){
+                    id
+                    title
+                    description
+                    email
+                }
+            } 
+        """ %(self.form.id)
+
+        response = client.execute(query)
+        assert 'errors' not in response
+
+        data = response['data']['getFormMeta']
+        assert data is not None 
