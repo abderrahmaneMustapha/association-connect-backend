@@ -579,7 +579,6 @@ class MembershipQuery(graphene.ObjectType):
         else:
             return None
 
-
     def resolve_get_association_form_filled_by_user(root, info, slug, key):
         member = Member.objects.get(user=info.context.user, association__slug=slug)
 
