@@ -488,6 +488,8 @@ class MembershipMutationsTestCase(TestCase):
     def test_get_form_showed_fields(self):
 
         client = Client(schema, context_value=self.req) 
+        self.association.slug = "aa-aa"
+        self.association.save()
         Member.objects.create(user=self.user,
                               association=self.association,
                               is_owner=True)
@@ -503,8 +505,98 @@ class MembershipMutationsTestCase(TestCase):
         """ %(self.association.slug)
 
         response = client.execute(query)
-        print(response)
         assert 'errors' not in response
 
         data = response['data']['getFormShowedFields']
         assert data is not None
+
+    def test_get_form_all_fields(self):
+
+        client = Client(schema, context_value=self.req) 
+        self.association.slug = "aa-aa"
+        self.association.save()
+        Member.objects.create(user=self.user,
+                              association=self.association,
+                              is_owner=True)
+        query = """
+           query {
+                getFormAllFields(slug:\"%s\"){
+                    id
+                    label
+                    description
+                    placeholder
+                }
+            }
+        """ %(self.association.slug)
+
+        response = client.execute(query)
+        assert 'errors' not in response
+
+        data = response['data']['getFormAllFields']
+        assert data is not None
+
+    def test_get_form_showed_fields_data(self):
+        
+        client = Client(schema, context_value=self.req) 
+     
+        Member.objects.create(user=self.user,
+                              association=self.association,
+                              is_owner=True)
+        query = """
+           query {
+                getFormShowedFieldsData(formId:\"%s\"){
+                    id
+                    field{id, label}
+                }
+            }
+        """ %(self.form.id)
+
+        response = client.execute(query)
+        assert 'errors' not in response
+
+        data = response['data']['getFormShowedFieldsData']
+        assert data is not None 
+
+    def test_get_form_all_fields_data(self):
+        client = Client(schema, context_value=self.req) 
+     
+        Member.objects.create(user=self.user,
+                              association=self.association,
+                              is_owner=True)
+        query = """
+           query {
+                getFormAllFieldsData(formId:\"%s\"){
+                    id
+                    field{id, label}
+                }
+            }
+        """ %(self.form.id)
+
+        response = client.execute(query)
+        assert 'errors' not in response
+
+        data = response['data']['getFormAllFieldsData']
+        assert data is not None 
+    
+    def test_get_form_all_fields_user_data(self):
+        client = Client(schema, context_value=self.req) 
+     
+        Member.objects.create(user=self.user,
+                              association=self.association,
+                              is_owner=True)
+
+        
+        query = """
+           query {
+                getFormAllFieldsUserData(formId:\"%s\", key:\"%s\"){
+                    id
+                    field{id, label}
+                }
+            }
+        """ %(self.form.id, self.user.key)
+
+        response = client.execute(query)
+        assert 'errors' not in response
+
+        data = response['data']['getFormAllFieldsUserData']
+        assert data is not None 
