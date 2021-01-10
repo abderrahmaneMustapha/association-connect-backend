@@ -460,9 +460,9 @@ class MembershipQuery(graphene.ObjectType):
     get_form_all_fields_data = graphene.List(FieldDataType,
                                              form_id=graphene.ID())
     get_form_showed_fields_data = graphene.List(FieldDataType,
-                                                slug=graphene.String())
+                                                form_id=graphene.ID())
     get_form_all_fields_user_data = graphene.List(FieldDataType,
-                                                  slug=graphene.String(),
+                                                  form_id=graphene.ID(),
                                                   key=graphene.String())
 
     get_form_all_costs = graphene.List(CostType, slug=graphene.String())
@@ -502,7 +502,7 @@ class MembershipQuery(graphene.ObjectType):
         member = Member.objects.get(user=info.context.user, association__slug=slug)
         if have_association_permission(
                 member.association, member.user, "manage_association_form"):
-            return Form.objects.filter(association__slug=slug,
+            return Field.objects.filter(form__association__slug=slug,
                                        show_in_form=True)
         else:
             return None
@@ -512,14 +512,14 @@ class MembershipQuery(graphene.ObjectType):
 
         if have_association_permission(
                 member.association, member.user, "manage_association_form"):
-            return Form.objects.filter(association__slug=slug)
+            return Field.objects.filter(form__association__slug=slug)
         else:
             return None
 
     def resolve_get_form_showed_fields_data(root, info, form_id):
 
-        return FieldData.objects.filter(form__id=form_id,
-                                        fieldshow_in_form=True)
+        return FieldData.objects.filter(field__form__id=form_id,
+                                        field__show_in_form=True)
 
     def resolve_get_form_all_fields_data(root, info, form_id):
         form = Form.objects.get(id=form_id)
@@ -528,7 +528,7 @@ class MembershipQuery(graphene.ObjectType):
         if have_association_permission(member.association, member.user,
                                        "manage_association_form"):
 
-            return FieldData.objects.filter(form__id=form_id)
+            return FieldData.objects.filter(field__form__id=form_id)
 
         else:
             return None
@@ -539,7 +539,7 @@ class MembershipQuery(graphene.ObjectType):
         
         if have_association_permission(member.association, member.user,
                                        "manage_association_form"):
-            return FieldData.objects.filter(form__id=form_id, user__key=key)
+            return FieldData.objects.filter(field__form__id=form_id, user__key=key)
         else:
             return None
 
