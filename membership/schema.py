@@ -567,7 +567,7 @@ class MembershipQuery(graphene.ObjectType):
             return None
 
     def resolve_get_form_field_type(root, info):
-        return FieldType.object.all()
+        return FieldType.objects.all()
 
     def resolve_get_association_form_filled(root, info, slug):
         member = Member.objects.get(user=info.context.user, association__slug=slug)
