@@ -600,3 +600,72 @@ class MembershipMutationsTestCase(TestCase):
 
         data = response['data']['getFormAllFieldsUserData']
         assert data is not None 
+    
+    def test_get_form_all_costs(self):
+        client = Client(schema, context_value=self.req) 
+     
+        Member.objects.create(user=self.user,
+                              association=self.association,
+                              is_owner=True)
+
+        
+        query = """
+           query {
+                getFormAllCosts(slug:\"%s\"){
+                    id
+                }
+            }
+        """ %(self.association.slug)
+
+        response = client.execute(query)
+        assert 'errors' not in response
+
+        data = response['data']['getFormAllCosts']
+        assert data is not None 
+    
+    
+    def test_get_form_showed_costs(self):
+        client = Client(schema, context_value=self.req) 
+     
+        Member.objects.create(user=self.user,
+                              association=self.association,
+                              is_owner=True)
+
+        
+        query = """
+           query {
+                getFormShowedCosts(slug:\"%s\"){
+                    id
+                }
+            }
+        """ %(self.association.slug)
+
+        response = client.execute(query)
+        assert 'errors' not in response
+
+        data = response['data']['getFormShowedCosts']
+        assert data is not None 
+    
+    def test_get_user_association_payed_costs(self):
+        client = Client(schema, context_value=self.req) 
+        self.association.slug = "aa-aa"
+        self.association.save()
+        Member.objects.create(user=self.user,
+                              association=self.association,
+                              is_owner=True)
+
+        
+        query = """
+           query {
+                getUserAssociationPayedCosts(slug:\"%s\"){
+                    id
+                }
+            }
+        """ %(self.association.slug)
+
+        response = client.execute(query)
+        assert 'errors' not in response
+
+        data = response['data']['getUserAssociationPayedCosts']
+        assert data is not None 
+    
