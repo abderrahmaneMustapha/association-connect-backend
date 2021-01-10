@@ -603,7 +603,8 @@ class MembershipMutationsTestCase(TestCase):
     
     def test_get_form_all_costs(self):
         client = Client(schema, context_value=self.req) 
-     
+        self.association.slug = "aa-aa"
+        self.association.save()
         Member.objects.create(user=self.user,
                               association=self.association,
                               is_owner=True)
@@ -669,3 +670,105 @@ class MembershipMutationsTestCase(TestCase):
         data = response['data']['getUserAssociationPayedCosts']
         assert data is not None 
     
+    def test_get_form_field_type(self):
+        
+        client = Client(schema, context_value=self.req) 
+        query = """
+           query{
+                getFormFieldType{
+                    name
+                }
+            }
+        """ 
+
+        response = client.execute(query)
+        assert 'errors' not in response
+
+        data = response['data']['getFormFieldType']
+        assert data is not None 
+    
+    def test_get_association_form_filled(self):
+        client = Client(schema, context_value=self.req) 
+        self.association.slug = "aa-aa"
+        self.association.save()
+        Member.objects.create(user=self.user,
+                              association=self.association,
+                              is_owner=True)
+        query = """
+           query{
+                getAssociationFormFilled(slug:\"%s\"){
+                 userPayedCost{user{key}}
+                }
+            }
+        """  %(self.association.slug)
+
+        response = client.execute(query)
+        assert 'errors' not in response
+
+        data = response['data']['getAssociationFormFilled']
+        assert data is not None 
+
+    def test_get_association_form_filled_by_user(self):
+        client = Client(schema, context_value=self.req) 
+        self.association.slug = "aa-aa"
+        self.association.save()
+        Member.objects.create(user=self.user,
+                              association=self.association,
+                              is_owner=True)
+        query = """
+           query{
+                getAssociationFormFilledByUser(slug:\"%s\", key:\"%s\"){
+                 userPayedCost{user{key}}
+                }
+            }
+        """  %(self.association.slug, self.user.key)
+
+        response = client.execute(query)
+        assert 'errors' not in response
+
+        data = response['data']['getAssociationFormFilledByUser']
+        assert data is not None 
+
+    
+    def test_get_user_accepted_join_request(self):
+        client = Client(schema, context_value=self.req) 
+        self.association.slug = "aa-aa"
+        self.association.save()
+        Member.objects.create(user=self.user,
+                              association=self.association,
+                              is_owner=True)
+        query = """
+           query{
+                getUserAcceptedJoinRequest(slug:\"%s\"){
+                 userPayedCost{user{key}}
+                }
+            }
+        """  %(self.association.slug)
+
+        response = client.execute(query)
+        assert 'errors' not in response
+
+        data = response['data']['getUserAcceptedJoinRequest']
+        assert data is not None
+
+    def test_get_user_declined_join_request(self):
+        client = Client(schema, context_value=self.req) 
+        self.association.slug = "aa-aa"
+        self.association.save()
+        Member.objects.create(user=self.user,
+                              association=self.association,
+                              is_owner=True)
+        query = """
+           query{
+                getUserDeclinedJoinRequest(slug:\"%s\"){
+                 userPayedCost{user{key}}
+                }
+            }
+        """  %(self.association.slug)
+
+        response = client.execute(query)
+        assert 'errors' not in response
+
+        data = response['data']['getUserDeclinedJoinRequest']
+        assert data is not None
+
