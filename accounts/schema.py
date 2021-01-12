@@ -501,10 +501,10 @@ class AccountsQuery(graphene.ObjectType):
         ModelsPermissionType)
 
     def resolve_get_association_by_slug(root, info, slug):
-        return Association.objects.get(slug=slug)
+        return Association.objects.get(slug=slug, block=False)
 
     def resolve_get_all_associations(root, info):
-        return Association.objects.all()
+        return Association.objects.filter(block=False)
 
     def resolve_get_all_associations_statique_groups(root, info, slug):
         member = Member.objects.filter(user=info.context.user,
