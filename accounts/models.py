@@ -88,7 +88,6 @@ class Association(models.Model):
     name = models.CharField(_('name of the association'), max_length=225)
     description = models.TextField(_('description of the association'),
                                    max_length=1500, null=True, blank=True)
-
     association_type = models.ForeignKey(
         AssociationType,
         verbose_name=_('the association type'),
@@ -103,7 +102,7 @@ class Association(models.Model):
         verbose_name=_(
             'expected max and min number of association members number'),
         on_delete=models.CASCADE, null=True, blank=True)
-    
+    block = models.BooleanField(_("block this association"), default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
