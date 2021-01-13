@@ -378,6 +378,17 @@ class AccountsMutationsTestCase(TestCase):
 
         assert [{'id': '1'}, {'id': '2'}] == response['data']['getAllAssociations']
 
+        query = """
+            query{
+                getAllAssociations(query:\"%s\"){
+                    id,
+                }
+            }
+        """ %("dz")
+
+        response = client.execute(query)
+        assert [{'id': '1'}, {'id': '2'}] == response['data']['getAllAssociations']
+
     def test_get_all_associations_statique_groups(self):
 
         client = Client(schema, context_value=self.req)
