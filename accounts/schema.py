@@ -10,6 +10,7 @@ from .models import (BaseUser, Member, Association, AssociationGroup,
                      AssociationTypeModel, ExpectedAssociationMembersNumber)
 
 from .utils import have_association_permission, have_group_permission
+from django.contrib.postgres.search import SearchVector
 
 
 #types
@@ -225,7 +226,8 @@ class AssociationDeleteMutation(graphene.Mutation):
     association = graphene.Field(AssociationType)
 
     def mutate(root, info, id):
-        super_member = Member.objects.filter(user=info.context.user, association__id=id).first().is_owner
+        super_member = Member.objects.filter(
+            user=info.context.user, association__id=id).first().is_owner
         association_ = None
         success = False
         if super_member:
@@ -473,7 +475,8 @@ class AccountsQuery(graphene.ObjectType):
     get_association_by_slug = graphene.Field(
         AssociationType, slug=graphene.String(required=True))
 
-    get_all_associations = graphene.List(AssociationType)
+    get_all_associations = graphene.List(AssociationType,
+                                         query=graphene.String(required=False))
 
     get_associations_group_by_id = graphene.Field(
         AssociationGroupType, id=graphene.ID(required=True))
@@ -503,22 +506,28 @@ class AccountsQuery(graphene.ObjectType):
     def resolve_get_association_by_slug(root, info, slug):
         return Association.objects.get(slug=slug, block=False)
 
-    def resolve_get_all_associations(root, info):
-        return Association.objects.filter(block=False)
+    def resolve_get_all_associations(root, info, query=None):
+        if query:
+            return Association.objects.annotate(
+                search=SearchVector('name', 'description')).filter(
+                    search__icontains=query, block=False)
+        else:
+            return Association.objects.filter(block=False)
 
     def resolve_get_all_associations_statique_groups(root, info, slug):
         member = Member.objects.filter(user=info.context.user,
-                                    association__slug=slug).first()
-
+                                       association__slug=slug).first()
 
         if have_association_permission(member.association, member.user,
                                        'manage_group'):
-            return AssociationGroup.objects.filter(association__slug=slug, group_type="S")
+            return AssociationGroup.objects.filter(association__slug=slug,
+                                                   group_type="S")
         else:
             return None
 
     def resolve_get_all_associations_dynamique_groups(root, info, slug):
-        return AssociationGroup.objects.filter(association__slug=slug, group_type="D")
+        return AssociationGroup.objects.filter(association__slug=slug,
+                                               group_type="D")
 
     def resolve_get_all_associations_groups(root, info, slug):
         member = Member.objects.get(user=info.context.user,
@@ -540,7 +549,8 @@ class AccountsQuery(graphene.ObjectType):
 
     def resolve_get_associations_members(root, info, slug):
         member = Member.objects.filter(association__slug=slug)
-        if have_association_permission(member.first().association, member.first().user,
+        if have_association_permission(member.first().association,
+                                       member.first().user,
                                        "view_association_member"):
             return member
         else:
@@ -548,9 +558,11 @@ class AccountsQuery(graphene.ObjectType):
 
     def resolve_get_association_member_by_id(root, info, id):
         member = Member.objects.filter(id=id)
-        super_member = Member.objects.get(user=info.context.user, association=member.first().association)
-        if member.exists()  or have_association_permission( super_member.association,  super_member.user,
-                                       "view_association_member"):
+        super_member = Member.objects.get(
+            user=info.context.user, association=member.first().association)
+        if member.exists() or have_association_permission(
+                super_member.association, super_member.user,
+                "view_association_member"):
             return member.first()
         else:
             return None
