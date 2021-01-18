@@ -96,7 +96,7 @@ class FormMetaAddMutation(graphene.Mutation):
         description = graphene.String()
         email = graphene.String()
         phone = graphene.String()
-        image = Upload(required=False)
+        photo = Upload(required=False)
         link = graphene.String(required=False)
         start_date = graphene.Date()
         days = graphene.Int()
@@ -114,7 +114,7 @@ class FormMetaAddMutation(graphene.Mutation):
                phone,
                start_date,
                days,
-               image=None,
+               photo=None,
                 link=None,
                add_to_request=False):
 
@@ -133,7 +133,7 @@ class FormMetaAddMutation(graphene.Mutation):
                     title=title,
                     description=description,
                     email=email,
-                    photo=image,
+                    photo=photo,
                     phone_number=phone,
                     link=link,
                     start_date=start_date,
@@ -146,7 +146,7 @@ class FormMetaAddMutation(graphene.Mutation):
                     title=title,
                     description=description,
                     email=email,
-                    photo=image,
+                    photo=photo,
                     phone_number=phone,
                     link=link,
                     start_date=start_date,
