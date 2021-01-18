@@ -15,7 +15,7 @@ class FormMetaType(DjangoObjectType):
         model = Form
         fields = [
             'id', 'association', 'title', 'description', 'email', 'start_date',
-            'days', 'add_to_request'
+            'days', 'add_to_request', 'link', 'photo', 'phone_number'
         ]
 
 
@@ -112,10 +112,10 @@ class FormMetaAddMutation(graphene.Mutation):
                description,
                email,
                phone,
-               link,
                start_date,
                days,
                image=None,
+                link=None,
                add_to_request=False):
 
         _association = Association.objects.get(id=association)
