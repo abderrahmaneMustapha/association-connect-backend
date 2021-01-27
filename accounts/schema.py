@@ -534,7 +534,7 @@ class AccountsQuery(graphene.ObjectType):
                                     association__slug=slug)
         if have_association_permission(member.association, member.user,
                                        'manage_group'):
-            return Association.objects.filter(slug=slug)
+            return AssociationGroup.objects.filter(association__slug=slug)
         else:
             return None
 
