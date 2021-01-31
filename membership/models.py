@@ -47,6 +47,7 @@ class UserPayedCosts(models.Model):
         already_payed_and_member  = Member.objects.filter(user=self.user)
         if already_payed_and_member :
             raise Exception("You are already a member in this association")
+
         super().save(*args, **kwargs)
 class JoinRequest(models.Model):
     user_payed_cost = models.ForeignKey(UserPayedCosts, verbose_name=_("user payed cost"), on_delete=models.CASCADE, null=True, blank=False)
@@ -84,9 +85,13 @@ class FormFilledByUser(models.Model):
     updated_at = models.DateTimeField(auto_now=True, null=True)
 
     def save(self, *args, **kwargs):
+
+        #check for the required fields
         fields = Field.objects.filter(form=self.user_payed_cost.cost.form, show_in_form=True, required=True)
         for field in fields:
             field_data = FieldData.objects.get(field=field)
+            if not field_data.data:
+                raise Exception(" this field {} is required".format(field.Label))
         if self.user_payed_cost.cost.form.add_to_request:
              JoinRequest.objects.create(user_payed_cost=self.user_payed_cost)
         else:
