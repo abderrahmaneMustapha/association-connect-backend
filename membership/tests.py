@@ -210,19 +210,21 @@ class MembershipMutationsTestCase(TestCase):
                               association=self.association,
                               is_owner=True)
         query = """mutation{
-            addCostToForm(inputs : {associationSlug:\"%s\", amount:%s, description:\"%s\", 
+            addCostToForm(inputs : {associationSlug:\"%s\", title:\"%s\", amount:%s, description:\"%s\", 
                 membershipTime:\"%s\", showInForm:true}){
                 cost{id, description}
                 success
             }
-        }""" % (self.form.association.slug, 234, "azazeazeazeaze", 4)
+        }""" % (self.form.association.slug, "Free plan", 234, "azazeazeazeaze", 4)
 
         response = client.execute(query)
         assert 'errors' not in response
-
-        cost_exists = Costs.objects.filter(description="azazeazeazeaze",
-                                           form=self.form).exists()
+        cost = Costs.objects.filter(description="azazeazeazeaze",
+                                           form=self.form)
+        cost_exists = cost.exists()
         assert cost_exists == True
+
+        assert cost.first().title == "Free plan"
 
     def test_add_membership_costs_mutation(self):
         client = Client(schema, context_value=self.req)
@@ -230,14 +232,14 @@ class MembershipMutationsTestCase(TestCase):
                               association=self.association,
                               is_owner=True)
         query = """mutation{
-            addCostsToForm(inputs : [{associationSlug:\"%s\", amount:%s, description:\"%s\", 
-                membershipTime:\"%s\", showInForm:true}, {associationSlug:\"%s\", amount:%s, description:\"%s\", 
+            addCostsToForm(inputs : [{associationSlug:\"%s\", title:\"%s\", amount:%s, description:\"%s\", 
+                membershipTime:\"%s\", showInForm:true}, {associationSlug:\"%s\", title:\"%s\", amount:%s, description:\"%s\", 
                 membershipTime:\"%s\", showInForm:true}]){
                 cost{id, description}
                 success
             }
-        }""" % (self.form.association.slug, 234, "azazeazeazeaze", 6,
-                self.form.association.slug, 264, "azeazeazeaze", 8)
+        }""" % (self.form.association.slug, "Pro plan", 234, "azazeazeazeaze", 6,
+                self.form.association.slug, "Mythic plan", 264, "azeazeazeaze", 8)
 
         response = client.execute(query)
         assert 'errors' not in response
