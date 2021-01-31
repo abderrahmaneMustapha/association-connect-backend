@@ -169,4 +169,13 @@ class AssociationGroupMember(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+
+    def save(self, *args, **kwargs):
+        group_member_exists = AssociationGroupMember.objects.filter(
+                member=self.member, group=self.group).exists()
+        if group_member_exists :
+            raise Exception(" You can not join group multiple time")
+
+        super().save(*args, **kwargs)
+
       
