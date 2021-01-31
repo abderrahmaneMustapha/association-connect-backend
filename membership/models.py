@@ -57,8 +57,13 @@ class JoinRequest(models.Model):
 
 class FieldType(models.Model):
     name  = models.CharField("field name", max_length=125)
+    html_name  = models.SlugField("html field name", max_length=225, null=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)
+
+class Choice(models.Model):
+    text = models.CharField(_("choice text"), max_length=125)
+    name  = models.CharField(_("choice html name or value"),  max_length=125)
 
 class Field(models.Model):
     form = models.ForeignKey(Form, verbose_name=_("form"), on_delete=models.CASCADE)
@@ -66,12 +71,18 @@ class Field(models.Model):
     name  = models.SlugField("field name", max_length=125, null=True, blank=False)
     description = models.TextField("field description", max_length=500)
     placeholder = models.CharField("field placeholder", max_length=125)
+    choices = models.ManyToManyField(Choice)
     show_in_form = models.BooleanField("show field in form", default=True)
     required =  models.BooleanField("field required", default=True)
     type = models.ForeignKey(FieldType, verbose_name=_("field type"), on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)
-    
+
+    def save(self, *args, **kwargs):
+        if (self.typ.html_name == "checkbox" or self.typ.html_name == "radio"):
+            if (self.choices.all().count() == 0):
+                raise Exception(" check box and radio type must have at least 2 choices")
+        super().save(*args, **kwargs)
 class  FieldData(models.Model):
     field = models.OneToOneField(Field, verbose_name=_("field"), on_delete=models.CASCADE)
     user =  models.ForeignKey(BaseUser, verbose_name=_("user field"), on_delete=models.CASCADE)
