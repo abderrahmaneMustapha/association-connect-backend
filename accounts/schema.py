@@ -1,5 +1,6 @@
 from graphene_django import DjangoObjectType
 import graphene
+from graphql_jwt.decorators import login_required
 from graphql import GraphQLError
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
@@ -72,6 +73,7 @@ class MemberAddByAdminMutation(graphene.Mutation):
     success = graphene.Boolean()
     member = graphene.Field(MemberType)
 
+    @login_required
     def mutate(root, info, association, user):
 
         association = Association.objects.get(id=association)
@@ -95,6 +97,7 @@ class MemberDeleteMutation(graphene.Mutation):
     success = graphene.Boolean()
     member = graphene.Field(MemberType)
 
+    @login_required
     def mutate(root, info, association, user):
         _association = Association.objects.get(id=association)
         member = None
@@ -116,6 +119,7 @@ class MemberArchiveMutation(graphene.Mutation):
     success = graphene.Boolean()
     member = graphene.Field(MemberType)
 
+    @login_required
     def mutate(root, info, association, user):
         _association = Association.objects.get(id=association)
         success = False
@@ -143,6 +147,7 @@ class AssociationCreationMutation(graphene.Mutation):
     success = graphene.Boolean()
     association = graphene.Field(AssociationType)
 
+    @login_required
     def mutate(root, info, name, description, association_type,
                association_min_max_numbers, phone, email):
 
@@ -225,6 +230,7 @@ class AssociationDeleteMutation(graphene.Mutation):
     success = graphene.Boolean()
     association = graphene.Field(AssociationType)
 
+    @login_required
     def mutate(root, info, id):
         super_member = Member.objects.filter(
             user=info.context.user, association__id=id).first().is_owner
@@ -248,6 +254,7 @@ class AssociationUpdateDescriptionMutation(graphene.Mutation):
     success = graphene.Boolean()
     association = graphene.Field(AssociationType)
 
+    @login_required
     def mutate(root, info, association, description):
         association = Association.objects.get(id=association)
         success = False
@@ -269,6 +276,7 @@ class AssociationGroupCreationMutation(graphene.Mutation):
     success = graphene.Boolean()
     group = graphene.Field(AssociationGroupType)
 
+    @login_required
     def mutate(root, info, name, association, group_type):
         _association = Association.objects.get(id=association)
         _group = None
@@ -290,6 +298,7 @@ class AssociationGroupDeleteMutation(graphene.Mutation):
     success = graphene.Boolean()
     group = graphene.Field(AssociationGroupType)
 
+    @login_required
     def mutate(root, info, group, association):
 
         _association = Association.objects.get(id=association)
@@ -313,6 +322,7 @@ class AssociationGroupMemberAddMutation(graphene.Mutation):
     success = graphene.Boolean()
     member = graphene.Field(AssociationGroupMemberType)
 
+    @login_required
     def mutate(root, info, member, group):
         _member = Member.objects.get(id=member)
         _group = AssociationGroup.objects.get(id=group)
@@ -338,6 +348,7 @@ class AssociationGroupMemberRemoveMutation(graphene.Mutation):
     success = graphene.Boolean()
     member = graphene.Field(AssociationGroupMemberType)
 
+    @login_required
     def mutate(root, info, member, group):
         _group = AssociationGroup.objects.get(id=group)
         success = False
@@ -361,6 +372,7 @@ class OwnerGiveAssociationPermissionsToMembers(graphene.Mutation):
     success = graphene.Boolean()
     member = graphene.Field(MemberType)
 
+    @login_required
     def mutate(root, info, permission, association, member):
         _association = Association.objects.get(id=association)
         _member = Member.objects.get(id=member)
@@ -382,6 +394,7 @@ class OwnerRemoveAssociationPermissionsToMembers(graphene.Mutation):
     success = graphene.Boolean()
     member = graphene.Field(MemberType)
 
+    @login_required
     def mutate(root, info, permission, association, member):
         _association = Association.objects.get(id=association)
         _member = Member.objects.get(id=member)
@@ -404,6 +417,7 @@ class OwnerGiveGroupPermissionsToMembers(graphene.Mutation):
     success = graphene.Boolean()
     member = graphene.Field(MemberType)
 
+    @login_required
     def mutate(root, info, permission, association, group, member):
         _association = Association.objects.get(id=association)
         _group = AssociationGroup.objects.get(id=group,
@@ -429,6 +443,7 @@ class OwnerRemoveGroupPermissionsToMembers(graphene.Mutation):
     success = graphene.Boolean()
     member = graphene.Field(MemberType)
 
+    @login_required
     def mutate(root, info, permission, association, group, member):
         _association = Association.objects.get(id=association)
         _group = AssociationGroup.objects.get(id=group,
@@ -506,9 +521,11 @@ class AccountsQuery(graphene.ObjectType):
     get_all_association_group_member_object_permissions = graphene.List(
         ModelsPermissionType)
 
+
     def resolve_get_association_by_slug(root, info, slug):
         return Association.objects.get(slug=slug, block=False)
 
+    @login_required
     def resolve_get_all_associations(root, info, query=None):
         if query:
             return Association.objects.annotate(
@@ -517,6 +534,7 @@ class AccountsQuery(graphene.ObjectType):
         else:
             return Association.objects.filter(block=False)
 
+    @login_required
     def resolve_get_all_associations_statique_groups(root, info, slug):
         member = Member.objects.filter(user=info.context.user,
                                        association__slug=slug).first()
@@ -528,10 +546,12 @@ class AccountsQuery(graphene.ObjectType):
         else:
             return None
 
+    @login_required
     def resolve_get_all_associations_dynamique_groups(root, info, slug):
         return AssociationGroup.objects.filter(association__slug=slug,
                                                group_type="D")
 
+    @login_required
     def resolve_get_all_associations_groups(root, info, slug):
         member = Member.objects.get(user=info.context.user,
                                     association__slug=slug)
@@ -541,6 +561,7 @@ class AccountsQuery(graphene.ObjectType):
         else:
             return None
 
+    @login_required
     def resolve_get_associations_group_by_id(root, info, id):
         group = AssociationGroup.objects.get(pk=id)
         member = Member.objects.filter(user=info.context.user,
@@ -550,6 +571,7 @@ class AccountsQuery(graphene.ObjectType):
         else:
             return None
 
+    @login_required
     def resolve_get_associations_members(root, info, slug):
         member = Member.objects.filter(association__slug=slug)
         if have_association_permission(member.first().association,
@@ -559,6 +581,7 @@ class AccountsQuery(graphene.ObjectType):
         else:
             return None
 
+    @login_required
     def resolve_get_association_member_by_id(root, info, id):
         member = Member.objects.filter(id=id)
         super_member = Member.objects.get(
@@ -570,18 +593,22 @@ class AccountsQuery(graphene.ObjectType):
         else:
             return None
 
+    @login_required
     def resolve_get_all_association_object_permissions(root, info):
         content_type = ContentType.objects.get_for_model(Association)
         return Permission.objects.filter(content_type=content_type)
 
+    @login_required
     def resolve_get_all_association_group_object_permissions(root, info):
         content_type = ContentType.objects.get_for_model(AssociationGroup)
         return Permission.objects.filter(content_type=content_type)
 
+    @login_required
     def resolve_get_all_association_member_object_permissions(root, info):
         content_type = ContentType.objects.get_for_model(Member)
         return Permission.objects.filter(content_type=content_type)
 
+    @login_required
     def resolve_get_all_association_group_member_object_permissions(
             root, info):
         content_type = ContentType.objects.get_for_model(
