@@ -265,7 +265,7 @@ class MembershipMutationsTestCase(TestCase):
         response = client.execute(query)
         assert 'errors' not in response
 
-    def test_add_multi_membership_cost_payed_mutation_faile(self):
+    def test_add_multi_membership_cost_payed_mutation_faile_already_payed(self):
         client = Client(schema)
         query = """mutation{
             addUserPayedCosts(cost:%s, user:\"%s\"){
@@ -275,7 +275,33 @@ class MembershipMutationsTestCase(TestCase):
 
         response = client.execute(query)
         assert 'errors'  in response
+    
+    def test_add_multi_membership_cost_payed_mutation_faile_member(self):
+        client = Client(schema)
+        Member.objects.create(user=self.user1, association=self.cost.form.association)
+        query = """mutation{
+            addUserPayedCosts(cost:%s, user:\"%s\"){
+                    cost{id, cost{id,description}}
+            }
+        }""" % (self.cost.id, self.user.key)
 
+        response = client.execute(query)
+        assert 'errors'  in response
+    
+    def test_add_multi_membership_cost_payed_mutation_faile_in_joinrequest(self):
+        client = Client(schema)
+        user_payed_cost = UserPayedCosts.objects.create(user=self.user1,
+                                                            cost=self.cost)
+        JoinRequest.objects.create(user_payed_cost=user_payed_cost)
+        query = """mutation{
+            addUserPayedCosts(cost:%s, user:\"%s\"){
+                    cost{id, cost{id,description}}
+            }
+        }""" % (self.cost.id, self.user1.key)
+
+        response = client.execute(query)
+        assert 'errors'  in response
+    
     def test_add_field_to_form_mutation(self):
         client = Client(schema, context_value=self.req)
         Member.objects.create(user=self.user,
