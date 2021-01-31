@@ -316,13 +316,12 @@ class AssociationGroupMemberAddMutation(graphene.Mutation):
     def mutate(root, info, member, group):
         _member = Member.objects.get(id=member)
         _group = AssociationGroup.objects.get(id=group)
-        group_member_exists = AssociationGroupMember.objects.filter(
-                member=_member, group=_group).exists()
+      
         group_member = None
         success = False
 
         if have_group_permission(_group.association, _group, info.context.user,
-                                 "add_group_member") and not group_member_exists:
+                                 "add_group_member") :
             
             group_member = AssociationGroupMember.objects.create(
                 member=_member, group=_group)
