@@ -44,7 +44,7 @@ class UserPayedCosts(models.Model):
             raise Exception("You are already in the join requests of this association")
 
         # a user who is already a member
-        already_payed_and_member  = Member.objects.filter(user=self.user)
+        already_payed_and_member  = Member.objects.filter(user=self.user, is_archived=False).exists()
         if already_payed_and_member :
             raise Exception("You are already a member in this association")
 
@@ -80,7 +80,7 @@ class  FieldData(models.Model):
     updated_at = models.DateTimeField(auto_now=True, null=True)
 
 class FormFilledByUser(models.Model):
-    user_payed_cost = models.ForeignKey(UserPayedCosts, verbose_name=_("user payed cost"), on_delete=models.CASCADE, null=True, blank=False)
+    user_payed_cost = models.OneToOneField(UserPayedCosts, verbose_name=_("user payed cost"), on_delete=models.CASCADE, null=True, blank=False)
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)
 
