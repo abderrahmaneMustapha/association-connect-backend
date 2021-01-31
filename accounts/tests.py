@@ -282,6 +282,23 @@ class AccountsMutationsTestCase(TestCase):
 
         group_exists = AssociationGroupMember.objects.filter(member=self.delete_member.id, id=self.group.id).exists()
         assert group_exists == True
+    
+      
+    def test_association_add_member_group_faile(self):
+        client = Client(schema, context_value=self.req)
+        Member.objects.create(user=self.user, association=self.association, is_owner=True)
+        AssociationGroupMember.objects.create(group=self.group, member=self.delete_member)
+        query="""
+        mutation {
+            addMemberGroup(member:%s, group:%s){
+                success
+                member{member{id}}
+            }
+        }
+        """%(self.delete_member.id, self.group.id)
+        
+        response = client.execute(query)
+        assert 'errors' in response
 
     def test_association_remove_member_group(self):
         client = Client(schema, context_value=self.req)
