@@ -26,6 +26,12 @@ class MembershipMutationsTestCase(TestCase):
             email="abderrahmanemustapa@mail.com",
             is_association_owner=False)
 
+        
+        cls.user1 = BaseUser.objects.create(
+            first_name="haboboa",
+            last_name="najik",
+            email="kajajj@mail.com",
+            is_association_owner=False)
 
         cls.association_type = AssociationType.objects.create(
             name="sport", description="a sport activitys")
@@ -254,10 +260,21 @@ class MembershipMutationsTestCase(TestCase):
             addUserPayedCosts(cost:%s, user:\"%s\"){
                     cost{id, cost{id,description}}
             }
-        }""" % (self.cost.id, self.user.key)
+        }""" % (self.cost.id, self.user1.key)
 
         response = client.execute(query)
         assert 'errors' not in response
+
+    def test_add_multi_membership_cost_payed_mutation_faile(self):
+        client = Client(schema)
+        query = """mutation{
+            addUserPayedCosts(cost:%s, user:\"%s\"){
+                    cost{id, cost{id,description}}
+            }
+        }""" % (self.cost.id, self.user.key)
+
+        response = client.execute(query)
+        assert 'errors'  in response
 
     def test_add_field_to_form_mutation(self):
         client = Client(schema, context_value=self.req)
