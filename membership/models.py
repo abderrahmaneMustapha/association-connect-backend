@@ -37,6 +37,16 @@ class UserPayedCosts(models.Model):
         already_payed = UserPayedCosts.objects.filter(cost__form=self.cost.form, user=self.user).exists()
         if already_payed : 
             raise Exception("You only allowed to choose a one cost per form")
+        
+        # a user who already payed the cost and he is in the association join request list
+        already_payed_and_in_join_req = JoinRequest.objects.filter(user_payed_cost__cost=self.cost, user_payed_cost__user=self.user ).exists()
+        if already_payed : 
+            raise Exception("You are already in the join requests of this association")
+
+        # a user who is already a member
+        already_payed_and_member  = Member.objects.filter(user=self.user)
+        if already_payed_and_member :
+            raise Exception("You are already a member in this association")
         super().save(*args, **kwargs)
 class JoinRequest(models.Model):
     user_payed_cost = models.ForeignKey(UserPayedCosts, verbose_name=_("user payed cost"), on_delete=models.CASCADE, null=True, blank=False)
