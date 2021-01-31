@@ -286,7 +286,7 @@ class AccountsMutationsTestCase(TestCase):
       
     def test_association_add_member_group_faile(self):
         client = Client(schema, context_value=self.req)
-        Member.objects.create(user=self.user, association=self.association, is_owner=True)
+        Member.objects.create(user=self.user, association=self.group.association, is_owner=True)
         AssociationGroupMember.objects.create(group=self.group, member=self.delete_member)
         query="""
         mutation {

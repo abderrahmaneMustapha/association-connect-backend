@@ -429,6 +429,7 @@ class MembershipMutationsTestCase(TestCase):
         }""" % (self.user_payed_cost_to_request.id, [self.group1.id, self.group2.id])
 
         response = client.execute(query)
+    
         assert 'errors' not in response
 
         joi_req = JoinRequest.objects.filter(

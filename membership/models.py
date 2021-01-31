@@ -110,7 +110,7 @@ class AssociationGroupJoinRequest(models.Model):
 
     def save(self, *args, **kwargs):
         group_member_exists = AssociationGroupMember.objects.filter(
-                member=self.member, group=self.group).exists()
+                member__user=self.user_payed_cost.user, group=self.group).exists()
         if group_member_exists :
             raise Exception(" You can not join group multiple time")
 
