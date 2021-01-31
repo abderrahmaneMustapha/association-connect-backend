@@ -1,6 +1,6 @@
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
-from accounts.models import BaseUser, Association, AssociationMembership, Member, AssociationGroup
+from accounts.models import BaseUser, Association, AssociationMembership, AssociationGroupMember, Member, AssociationGroup
 from phonenumber_field.modelfields import PhoneNumberField
 
 class Form(models.Model):
@@ -109,7 +109,11 @@ class AssociationGroupJoinRequest(models.Model):
     updated_at = models.DateTimeField(auto_now=True, null=True)
 
     def save(self, *args, **kwargs):
-        if self.group.association == self.user_payed_cost.cost.form.association:
-            raise Exception("You can not join this request")
+        group_member_exists = AssociationGroupMember.objects.filter(
+                member=self.member, group=self.group).exists()
+        if group_member_exists :
+            raise Exception(" You can not join group multiple time")
+
+    
         super().save(*args, **kwargs)
         
