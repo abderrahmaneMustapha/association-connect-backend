@@ -32,8 +32,12 @@ class UserPayedCosts(models.Model):
     user = models.ForeignKey(BaseUser, verbose_name=_("user who payed ths cost"), on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)
-
-
+    
+    def save(self, *args, **kwargs):
+        already_payed = UserPayedCosts.objects.filter(cost__form=self.cost.form, user=self.user).exists()
+        if already_payed : 
+            raise Exception("You only allowed to choose a one cost per form")
+        super().save(*args, **kwargs)
 class JoinRequest(models.Model):
     user_payed_cost = models.ForeignKey(UserPayedCosts, verbose_name=_("user payed cost"), on_delete=models.CASCADE, null=True, blank=False)
     created_at = models.DateTimeField(auto_now_add=True, null=True)
