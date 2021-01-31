@@ -1,5 +1,6 @@
 from graphene_django import DjangoObjectType
 from graphene_file_upload.scalars import Upload
+from graphql_jwt.decorators import login_required
 from django.core.exceptions import ValidationError
 import graphene
 from accounts.models import AssociationGroupMember
@@ -106,6 +107,7 @@ class FormMetaAddMutation(graphene.Mutation):
     form = graphene.Field(FormMetaType)
     success = graphene.Boolean()
 
+    @login_required
     def mutate(root,
                info,
                association,
@@ -166,6 +168,7 @@ class AddCostsMutation(graphene.Mutation):
     cost = graphene.List(CostType)
     success = graphene.Boolean()
 
+    @login_required
     def mutate(root, info, inputs):
         _form = Form.objects.filter(
             association__slug=inputs[0].association_slug).first()
@@ -201,6 +204,7 @@ class AddCostMutation(graphene.Mutation):
     cost = graphene.Field(CostType)
     success = graphene.Boolean()
 
+    @login_required
     def mutate(root, info, inputs):
 
         _form = Form.objects.filter(
@@ -232,7 +236,7 @@ class AddUserPayedCostMutation(graphene.Mutation):
     cost = graphene.Field(UserPayedCostType)
     success = graphene.Boolean()
     user = graphene.Field(BaseUserType)
-
+    @login_required
     def mutate(root, info, cost, user):
         _cost = Costs.objects.get(id=cost)
         _user = BaseUser.objects.get(pk=user)
@@ -250,7 +254,7 @@ class AddFormFieldsMutation(graphene.Mutation):
 
     fields = graphene.List(FormFieldType)
     success = graphene.Boolean()
-
+    @login_required
     def mutate(root, info, inputs):
         _form = Form.objects.filter(
             association__slug=inputs[0].association_slug).first()
@@ -286,7 +290,7 @@ class AddFormFieldMutation(graphene.Mutation):
 
     field = graphene.Field(FormFieldType)
     success = graphene.Boolean()
-
+    @login_required
     def mutate(root, info, inputs):
         _form = Form.objects.filter(
             association__slug=inputs.association_slug).first()
@@ -322,7 +326,7 @@ class AddFieldData(graphene.Mutation):
 
     data = graphene.Field(FieldDataType)
     success = graphene.Boolean()
-
+    @login_required
     def mutate(root, info, field, user, data):
         _user = BaseUser.objects.get(pk=user)
         _field = Field.objects.get(pk=field)
@@ -348,6 +352,7 @@ class FormFilledByUserMutation(graphene.Mutation):
     filled_form = graphene.Field(FormFilledType)
     success = graphene.Boolean()
 
+    @login_required
     def mutate(root, info, user_payed_cost, groups=[]):
 
         _user_payed_cost = UserPayedCosts.objects.get(id=user_payed_cost)
@@ -383,7 +388,7 @@ class AcceptJoinRequestMutation(graphene.Mutation):
     success = graphene.Boolean()
     join_request = graphene.Field(JoinRequestType)
     member = graphene.Field(MemberType)
-
+    @login_required
     def mutate(root, info, join_request):
         _join_request = JoinRequest.objects.get(id=join_request)
         success = False
@@ -421,7 +426,7 @@ class DeclineJoinRequestMutation(graphene.Mutation):
 
     join_request = graphene.Field(JoinRequestType)
     success = graphene.Boolean()
-
+    @login_required
     def mutate(root, info, join_request_id):
         _join_request = JoinRequest.objects.filter(id=join_request_id)
         success = False
@@ -488,10 +493,11 @@ class MembershipQuery(graphene.ObjectType):
                                                    slug=graphene.String())
     get_user_all_join_request = graphene.List(JoinRequestType,
                                               slug=graphene.String())
-
+    @login_required
     def resolve_get_form_meta(root, info, id):
         return Form.objects.get(id=id)
-
+    
+    @login_required
     def resolve_get_form_by_association_slug(root, info, slug):
         member = Member.objects.get(user=info.context.user, association__slug=slug)
         if  have_association_permission(
@@ -503,6 +509,7 @@ class MembershipQuery(graphene.ObjectType):
 
             return None
 
+    @login_required
     def resolve_get_form_showed_fields(root, info, slug):
         member = Member.objects.get(user=info.context.user, association__slug=slug)
         if have_association_permission(
@@ -512,6 +519,7 @@ class MembershipQuery(graphene.ObjectType):
         else:
             return None
 
+    @login_required
     def resolve_get_form_all_fields(root, info, slug):
         member = Member.objects.get(user=info.context.user, association__slug=slug)
 
@@ -521,11 +529,13 @@ class MembershipQuery(graphene.ObjectType):
         else:
             return None
 
+    @login_required
     def resolve_get_form_showed_fields_data(root, info, form_id):
 
         return FieldData.objects.filter(field__form__id=form_id,
                                         field__show_in_form=True)
 
+    @login_required
     def resolve_get_form_all_fields_data(root, info, form_id):
         form = Form.objects.get(id=form_id)
         member = Member.objects.get(user=info.context.user, association=form.association)
@@ -538,6 +548,7 @@ class MembershipQuery(graphene.ObjectType):
         else:
             return None
 
+    @login_required
     def resolve_get_form_all_fields_user_data(root, info, form_id, key):
         form = Form.objects.get(id=form_id)
         member = Member.objects.get(user=info.context.user, association=form.association)
@@ -548,6 +559,7 @@ class MembershipQuery(graphene.ObjectType):
         else:
             return None
 
+    @login_required
     def resolve_get_form_all_costs(root, info, slug):
         member = Member.objects.get(user=info.context.user, association__slug=slug)
 
@@ -557,10 +569,12 @@ class MembershipQuery(graphene.ObjectType):
         else:
             return None
 
+    @login_required
     def resolve_get_form_showed_costs(root, info, slug):
         return Costs.objects.filter(form__association__slug=slug,
                                     show_in_form=True)
 
+    @login_required
     def resolve_get_user_association_payed_costs(root, info, slug):
         member = Member.objects.get(user=info.context.user, association__slug=slug)
 
@@ -571,9 +585,11 @@ class MembershipQuery(graphene.ObjectType):
         else:
             return None
 
+    @login_required
     def resolve_get_form_field_type(root, info):
         return FieldType.objects.all()
 
+    @login_required
     def resolve_get_association_form_filled(root, info, slug):
         member = Member.objects.get(user=info.context.user, association__slug=slug)
 
@@ -584,6 +600,7 @@ class MembershipQuery(graphene.ObjectType):
         else:
             return None
 
+    @login_required
     def resolve_get_association_form_filled_by_user(root, info, slug, key):
         member = Member.objects.get(user=info.context.user, association__slug=slug)
 
@@ -595,6 +612,7 @@ class MembershipQuery(graphene.ObjectType):
         else:
             return None
 
+    @login_required
     def resolve_get_user_accepted_join_request(root, info, slug):
         member = Member.objects.get(user=info.context.user, association__slug=slug)
 
@@ -605,6 +623,7 @@ class MembershipQuery(graphene.ObjectType):
         else:
             return None
 
+    @login_required
     def resolve_get_user_declined_join_request(root, info, slug):
         member = Member.objects.get(user=info.context.user, association__slug=slug)
 
@@ -615,6 +634,8 @@ class MembershipQuery(graphene.ObjectType):
         else:
             return None
 
+
+    @login_required
     def resolve_get_user_all_join_request(root, info, slug):
         member = Member.objects.get(user=info.context.user, association__slug=slug)
 
