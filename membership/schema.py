@@ -70,6 +70,7 @@ class JoinRequestType(DjangoObjectType):
 #inputs
 class FormCostsInputs(graphene.InputObjectType):
     association_slug = graphene.String()
+    title = graphene.String()
     description = graphene.String()
     amount = graphene.Float()
     membership_time = graphene.String()
@@ -168,7 +169,7 @@ class AddCostsMutation(graphene.Mutation):
     def mutate(root, info, inputs):
         _form = Form.objects.filter(
             association__slug=inputs[0].association_slug).first()
-        Costs.objects.filter(form=_form).delete()
+       
 
         success = False
         costs = []
@@ -176,8 +177,10 @@ class AddCostsMutation(graphene.Mutation):
         if have_association_permission(association=_form.association,
                                        user=info.context.user,
                                        permission="manage_association_form"):
+            Costs.objects.filter(form=_form).delete()
             for _input in inputs:
                 cost = Costs.objects.create(
+                    title =_input.title,
                     form=_form,
                     description=_input.description,
                     amount=_input.amount,
@@ -209,7 +212,9 @@ class AddCostMutation(graphene.Mutation):
                                        permission="manage_association_form"):
             Costs.objects.filter(form=_form).delete()
 
-            cost = Costs.objects.create(form=_form,
+            cost = Costs.objects.create(
+                title =inputs.title,
+                form=_form,
                                         description=inputs.description,
                                         amount=inputs.amount,
                                         membership_time=inputs.membership_time,
