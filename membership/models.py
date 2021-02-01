@@ -80,9 +80,14 @@ class Field(models.Model):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        if (self.type.html_name == "checkbox" or self.type.html_name == "radio"):
+        allowed_choices_fields = ["checkbox", "radio", "select"]
+        if (self.type.html_name in allowed_choices_fields):
             if (self.choices.all().count() <= 1):
                 raise Exception("check box and radio type must have at least 2 choices")
+        else:
+            if (self.choices.all().count() > 0):
+                raise Exception("this field can not have choices")
+
       
 class  FieldData(models.Model):
     field = models.OneToOneField(Field, verbose_name=_("field"), on_delete=models.CASCADE)
