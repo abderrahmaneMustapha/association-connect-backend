@@ -356,7 +356,28 @@ class MembershipMutationsTestCase(TestCase):
 
         response = client.execute(query)
         assert response['errors'][0]['message'] == 'check box and radio type must have at least 2 choices'
+    
+    def test_add_radio_field_to_form_mutation_faile(self):
+        client = Client(schema, context_value=self.req)
+        Member.objects.create(user=self.user,
+                              association=self.association,
+                              is_owner=True)
 
+        description = "this is my field description"
+        label = "field"
+        placeholder = "please add field"
+        query = """mutation{
+            addFieldToForm(inputs : {description:\"%s\", associationSlug:\"%s\", label:\"%s\", placeholder:\"%s\", 
+            required:true, showInForm:true, type:\"%s\"}){
+                field{id, label},
+                success
+            }
+        }""" % (description, self.form.association.slug, label, placeholder,
+                self.field_type_checkbox.name)
+
+        response = client.execute(query)
+        assert response['errors'][0]['message'] == 'check box and radio type must have at least 2 choices'
+    
     def test_add_fields_to_form_mutation(self):
         client = Client(schema, context_value=self.req)
         Member.objects.create(user=self.user,
