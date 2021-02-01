@@ -112,7 +112,9 @@ class MembershipMutationsTestCase(TestCase):
         cls.user_payed_cost_to_request = UserPayedCosts.objects.create(
             user=cls.user, cost=cls.cost_form_to_request)
 
-        cls.field_type = FieldType.objects.create(name="char")
+        cls.field_type = FieldType.objects.create(name="char", html_name="text")
+        cls.field_type_checkbox = FieldType.objects.create(name="checkbox", html_name="checkbox")
+        cls.field_type_radio = FieldType.objects.create(name="radio", html_name="radio")
 
         cls.field = Field.objects.create(form=cls.form_second,
                                          label="azeaze",
@@ -333,6 +335,27 @@ class MembershipMutationsTestCase(TestCase):
 
         name_field = Field.objects.filter(form=self.form).first().name 
         assert name_field == label
+
+    def test_add_checkbox_field_to_form_mutation_faile(self):
+        client = Client(schema, context_value=self.req)
+        Member.objects.create(user=self.user,
+                              association=self.association,
+                              is_owner=True)
+
+        description = "this is my field description"
+        label = "field"
+        placeholder = "please add field"
+        query = """mutation{
+            addFieldToForm(inputs : {description:\"%s\", associationSlug:\"%s\", label:\"%s\", placeholder:\"%s\", 
+            required:true, showInForm:true, type:\"%s\"}){
+                field{id, label},
+                success
+            }
+        }""" % (description, self.form.association.slug, label, placeholder,
+                self.field_type_checkbox.name)
+
+        response = client.execute(query)
+        assert response['errors'][0]['message'] == 'check box and radio type must have at least 2 choices'
 
     def test_add_fields_to_form_mutation(self):
         client = Client(schema, context_value=self.req)
