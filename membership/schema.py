@@ -8,7 +8,7 @@ from accounts.schema import BaseUserType, MemberType
 from .models import Form, Choice, AssociationGroupJoinRequest, Association, JoinRequest, Member, AssociationMembership, Costs, UserPayedCosts, BaseUser, Field, FieldType, FieldData, FormFilledByUser, AssociationGroup
 from accounts.utils import have_association_permission
 from django.template.defaultfilters import slugify
-
+from .utils import check_choices
 
 # object types
 class FormMetaType(DjangoObjectType):
@@ -269,7 +269,7 @@ class AddFormFieldsMutation(graphene.Mutation):
 
             for _input in inputs:
                 _field_type = FieldType.objects.get(name=_input.type)
-                _field = Field(form=_form,
+                _field = Field.objects.create(form=_form,
                                               label=_input.label,
                                               name=slugify(_input.label),
                                               description=_input.description,
@@ -278,12 +278,9 @@ class AddFormFieldsMutation(graphene.Mutation):
                                               required=_input.required,
                                               type=_field_type)
 
-                if _input.choices:                            
-                    for id in _input.choices:
-                        choice = Choice.objects.get(id=id)
-                        _field.choices.add(choice)
-                _field.save()
+                check_choices( _input.type, _input.choices, _field)
 
+                _field.save()
                 _field.full_clean()
                 _fields.append(_field)
             success = True
@@ -311,7 +308,7 @@ class AddFormFieldMutation(graphene.Mutation):
 
             _field_type = FieldType.objects.get(name=inputs.type)
             Field.objects.filter(form=_form).delete()
-            _field = Field(form=_form,
+            _field = Field.objects.create(form=_form,
                                           label=inputs.label,
                                           name=slugify(inputs.label),
                                           description=inputs.description,
@@ -319,11 +316,10 @@ class AddFormFieldMutation(graphene.Mutation):
                                           show_in_form=inputs.show_in_form,
                                           required=inputs.required,
                                           type=_field_type)
-            if inputs.choices:                            
-                for id in inputs.choices:
-                    choice = Choice.objects.get(id=id)
-                    _field.choices.add(choice)
 
+            check_choices( inputs.type, inputs.choices, _field)
+        
+        
             _field.save()              
             _field.full_clean()
             success = True
