@@ -8,7 +8,7 @@ from backend.schema import schema
 from accounts.models import (Association, AssociationType,
                              ExpectedAssociationMembersNumber,
                              AssociationMembership, Member, AssociationGroupMember)
-from .models import (Form, Association, BaseUser, Member, Costs, FieldType,
+from .models import (Form, Association, BaseUser, Choice, Member, Costs, FieldType,
                      Field, FieldData, UserPayedCosts, JoinRequest, AssociationGroupJoinRequest, AssociationGroup)
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import RequestFactory
@@ -115,6 +115,11 @@ class MembershipMutationsTestCase(TestCase):
         cls.field_type = FieldType.objects.create(name="char", html_name="text")
         cls.field_type_checkbox = FieldType.objects.create(name="checkbox", html_name="checkbox")
         cls.field_type_radio = FieldType.objects.create(name="radio", html_name="radio")
+        cls.field_type_select = FieldType.objects.create(name="select", html_name="select")
+
+        cls.choice1 = Choice.objects.create(text="choice1", name="choice-1")
+        cls.choice2 = Choice.objects.create(text="choice2", name="choice-2")
+        cls.choice3 = Choice.objects.create(text="choice3", name="choice-3")
 
         cls.field = Field.objects.create(form=cls.form_second,
                                          label="azeaze",
@@ -265,7 +270,6 @@ class MembershipMutationsTestCase(TestCase):
         }""" % (self.cost.id, self.user1.key)
 
         response = client.execute(query)
-        print(response)
         assert 'errors' not in response
 
     def test_add_multi_membership_cost_payed_mutation_faile_already_payed(self):
@@ -378,6 +382,28 @@ class MembershipMutationsTestCase(TestCase):
         response = client.execute(query)
         assert response['errors'][0]['message'] == 'check box and radio type must have at least 2 choices'
     
+    def  test_add_radio_field_to_form_mutation_success(self):
+        client = Client(schema, context_value=self.req)
+        Member.objects.create(user=self.user,
+                              association=self.association,
+                              is_owner=True)
+
+        description = "this is my field description"
+        label = "field"
+        placeholder = "please add field"
+        query = """mutation{
+            addFieldToForm(inputs : {description:\"%s\", associationSlug:\"%s\", label:\"%s\", placeholder:\"%s\", 
+            required:true, showInForm:true, choices:%s type:\"%s\"}){
+                field{id, label},
+                success
+            }
+        }""" % (description, self.form.association.slug, label, placeholder,
+                [self.choice1.id, self.choice2.id, self.choice3.id] ,self.field_type_checkbox.name)
+
+        response = client.execute(query)
+
+        assert 'errors' not in response
+
     def test_add_fields_to_form_mutation(self):
         client = Client(schema, context_value=self.req)
         Member.objects.create(user=self.user,
