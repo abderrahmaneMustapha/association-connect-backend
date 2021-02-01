@@ -77,16 +77,10 @@ class Field(models.Model):
     type = models.ForeignKey(FieldType, verbose_name=_("field type"), on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)
-
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        allowed_choices_fields = ["checkbox", "radio", "select"]
-        if (self.type.html_name in allowed_choices_fields):
-            if (self.choices.all().count() <= 1):
-                raise Exception("check box and radio type must have at least 2 choices")
-        else:
-            if (self.choices.all().count() > 0):
-                raise Exception("this field can not have choices")
+   
+        
+        
+        
 
       
 class  FieldData(models.Model):
