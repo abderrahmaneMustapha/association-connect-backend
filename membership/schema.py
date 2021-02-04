@@ -9,7 +9,7 @@ from .models import Form, Choice, AssociationGroupJoinRequest, Association, Join
 from accounts.utils import have_association_permission
 from django.template.defaultfilters import slugify
 from .utils import check_choices
-
+from utils.utils import uploadDateToAzureBlobStorage
 # object types
 class FormMetaType(DjangoObjectType):
     class Meta:
@@ -133,6 +133,7 @@ class FormMetaAddMutation(graphene.Mutation):
             _association_form_exists = _association_form.exists()
 
             if _association_form_exists:
+                uploadDateToAzureBlobStorage(photo)
                 Form.objects.filter(association=_association).update(
                     title=title,
                     description=description,
