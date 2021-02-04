@@ -11,10 +11,10 @@ class SendImageToStorageMutation(graphene.Mutation):
     
     data =  graphene.String()
     success = graphene.Boolean()
-    @login_required
+
     def mutate(root, info, image):
         print(image)
-        
+    
         return SendImageToStorageMutation(data="", success=True)
 
 class UtilsMutations(graphene.ObjectType):
