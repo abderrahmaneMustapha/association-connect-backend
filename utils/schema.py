@@ -14,5 +14,5 @@ class SendImageToStorageMutation(graphene.Mutation):
         print(image)
 
 
-class UtilsMutations(graphene.Mutation):
+class UtilsMutations(graphene.ObjectType):
     send_image_to_storage = SendImageToStorageMutation.Field()
