@@ -133,15 +133,15 @@ class FormMetaAddMutation(graphene.Mutation):
             _association_form_exists = _association_form.exists()
 
             if _association_form_exists:
-                
+
                 deleteDataFromAzureBlobStorage(photo, title, association)
-                uploadDataToAzureBlobStorage(photo, title, association)
+                photo_url = uploadDataToAzureBlobStorage(photo, title, association)
 
                 Form.objects.filter(association=_association).update(
                     title=title,
                     description=description,
                     email=email,
-                    photo=photo,
+                    photo=photo_url,
                     phone_number=phone,
                     link=link,
                     start_date=start_date,
@@ -150,13 +150,13 @@ class FormMetaAddMutation(graphene.Mutation):
                 success = True
             else:
                 
-                uploadDataToAzureBlobStorage(photo, title, association)
+                photo_url = uploadDataToAzureBlobStorage(photo, title, association)
                 _association_form = Form.objects.create(
                     association=_association,
                     title=title,
                     description=description,
                     email=email,
-                    photo=photo,
+                    photo=photo_url,
                     phone_number=phone,
                     link=link,
                     start_date=start_date,
