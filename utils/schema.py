@@ -1,5 +1,6 @@
 import graphene
 from graphene_file_upload.scalars import Upload
+from graphql_jwt.decorators import login_required
 
 class ImageType(graphene.ObjectType):
     image = Upload()
