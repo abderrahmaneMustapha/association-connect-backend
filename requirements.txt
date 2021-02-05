@@ -24,6 +24,7 @@ graphene-django==2.13.0
 graphene-file-upload==1.2.2
 graphql-core==2.3.2
 graphql-relay==2.0.1
+gunicorn==20.0.4
 idna==2.10
 iniconfig==1.1.1
 isodate==0.6.0
