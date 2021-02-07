@@ -12,7 +12,7 @@ from .models import (BaseUser, Member, Association, AssociationGroup,
 
 from .utils import have_association_permission, have_group_permission
 from django.contrib.postgres.search import SearchVector
-
+from utils.utils import excludNullFields
 
 #types
 class ModelsContentType(DjangoObjectType):
@@ -62,9 +62,43 @@ class AssociationGroupMemberType(DjangoObjectType):
 
 #end types
 
+# inputs 
+class UserInputs(graphene.InputObjectType):
+    username = graphene.String(required=False)
+    first_name = graphene.String(required=False)
+    last_name = graphene.String(required=False)
+    email = graphene.String(required=True)
+    date_birth = graphene.Date(required=False)
+    phone = graphene.String(required=False)
+    description = graphene.String(required=False)
+    adress = graphene.String(required=False)
+    city = graphene.String(required=False)
+    country = graphene.String(required=False)
+
 # mutations
 
+class UpdateUserInfoMutation(graphene.Mutation):
+    class Arguments : 
+        inputs = UserInputs()
+    
+    success = graphene.Boolean()
+    user = graphene.Field(BaseUserType)
+    
+    @login_required
+    def mutate(root, info, inputs):
+        values = excludNullFields(inputs)
 
+        user = BaseUser.objects.filter(email=inputs.email)
+        user_exists  = user.exists()
+        success = False
+        returned_user = None
+
+        if user_exists and info.context.user.email == inputs.email:            
+            user.update(**values)
+            returned_user= user.first()
+            success=True
+
+        return UpdateUserInfoMutation(success=success, user=returned_user)
 class MemberAddByAdminMutation(graphene.Mutation):
     class Arguments:
         association = graphene.ID()
@@ -466,6 +500,7 @@ class AccountsMutation(graphene.ObjectType):
     delete_member = MemberDeleteMutation.Field()
     archive_member = MemberArchiveMutation.Field()
 
+    update_user_info = UpdateUserInfoMutation.Field()
     create_association = AssociationCreationMutation.Field()
     create_association_no_register = AssociationCreationNoRegisterMutation.Field(
     )
