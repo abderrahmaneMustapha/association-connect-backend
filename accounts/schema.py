@@ -74,7 +74,14 @@ class UserInputs(graphene.InputObjectType):
     adress = graphene.String(required=False)
     city = graphene.String(required=False)
     country = graphene.String(required=False)
-
+class AssociationUpdateInputs(graphene.InputObjectType):
+    slug = graphene.String(required=True)
+    name = graphene.String(required=False)
+    description = graphene.String(required=False)
+    association_type = graphene.ID(required=False)
+    email = graphene.String(required=False)
+    phone = graphene.String(required=False)
+    association_min_max_numbers = graphene.ID(required=False)
 # mutations
 
 class UpdateUserInfoMutation(graphene.Mutation):
@@ -99,6 +106,32 @@ class UpdateUserInfoMutation(graphene.Mutation):
             success=True
 
         return UpdateUserInfoMutation(success=success, user=returned_user)
+
+class UpdateAssociationInfoMutation(graphene.Mutation):
+    class Arguments:
+        inputs = AssociationUpdateInputs()
+    
+    success = graphene.Boolean()
+    association = graphene.Field(AssociationType)
+
+    def mutate(root, info, inputs):
+        values = excludNullFields(inputs, "slug")
+
+        association = Association.objects.filter(slug=inputs.slug)
+        association_exists = association.exists()
+
+        association_returned  = None
+        success = False
+
+        if association_exists : 
+            association_returned = association.first()
+            if  have_association_permission(association_returned , info.context.user,
+                                        "delete_association_member"):
+                success=True
+                association.update(**values)
+                association_returned = association.first()
+            
+        return UpdateAssociationInfoMutation(success=success, association=association_returned)
 class MemberAddByAdminMutation(graphene.Mutation):
     class Arguments:
         association = graphene.ID()
@@ -500,6 +533,7 @@ class AccountsMutation(graphene.ObjectType):
     delete_member = MemberDeleteMutation.Field()
     archive_member = MemberArchiveMutation.Field()
 
+    update_association_info  = UpdateAssociationInfoMutation.Field()
     update_user_info = UpdateUserInfoMutation.Field()
     create_association = AssociationCreationMutation.Field()
     create_association_no_register = AssociationCreationNoRegisterMutation.Field(
