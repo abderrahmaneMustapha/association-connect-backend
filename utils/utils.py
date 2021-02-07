@@ -28,9 +28,9 @@ def deleteDataFromAzureBlobStorage(data, title, associationid):
     blob.delete_blob(blob=BLOB_NAME)
 
 
-def excludNullFields(inputs):
+def excludNullFields(inputs, exclude):
    
-    del inputs['email']
+    del inputs[exclude]
     return {
         k:v
         for k, v in inputs.items()

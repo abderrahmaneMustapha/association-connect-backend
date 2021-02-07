@@ -86,7 +86,7 @@ class UpdateUserInfoMutation(graphene.Mutation):
     
     @login_required
     def mutate(root, info, inputs):
-        values = excludNullFields(inputs)
+        values = excludNullFields(inputs, 'email')
 
         user = BaseUser.objects.filter(email=inputs.email)
         user_exists  = user.exists()
