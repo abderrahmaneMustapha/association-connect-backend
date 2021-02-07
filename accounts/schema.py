@@ -170,7 +170,7 @@ class MemberDeleteMutation(graphene.Mutation):
         member = None
         success = False
         if have_association_permission(_association, info.context.user,
-                                       "delete_association_member"):
+                                       "update_association_info"):
             member = Member.objects.filter(association=_association,
                                            user__key=user).delete()
             success = True
@@ -532,7 +532,6 @@ class AccountsMutation(graphene.ObjectType):
     add_memeber_by_admin = MemberAddByAdminMutation.Field()
     delete_member = MemberDeleteMutation.Field()
     archive_member = MemberArchiveMutation.Field()
-
     update_association_info  = UpdateAssociationInfoMutation.Field()
     update_user_info = UpdateUserInfoMutation.Field()
     create_association = AssociationCreationMutation.Field()
