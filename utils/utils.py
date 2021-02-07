@@ -26,6 +26,16 @@ def deleteDataFromAzureBlobStorage(data, title, associationid):
     blob = ContainerClient.from_connection_string(conn_str=CONNECTION_STRING, container_name=CONTAINER_NAME)
 
     blob.delete_blob(blob=BLOB_NAME)
+
+
+def excludNullFields(inputs):
+   
+    del inputs['email']
+    return {
+        k:v
+        for k, v in inputs.items()
+        if v 
+    }
   
 
 
