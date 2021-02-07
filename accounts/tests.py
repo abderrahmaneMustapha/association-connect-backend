@@ -85,6 +85,24 @@ class AccountsMutationsTestCase(TestCase):
 
 
     # mutations tests
+    def test_update_user_info(self):
+        client = Client(schema, context_value=self.req)
+        
+        query = """
+        mutation{
+            updateUserInfo(inputs:{firstName:"mustapha",lastName:"", email:"abderrahmanemustapa@mail.com"})
+            {
+                success
+            }
+        }
+        """
+
+        response = client.execute(query)
+        assert 'errors' not in response
+
+        user = BaseUser.objects.get(email=self.user.email)
+        assert user.first_name == "mustapha"
+        
     def test_add_member_by_admin(self):
         client = Client(schema, context_value=self.req)
 
