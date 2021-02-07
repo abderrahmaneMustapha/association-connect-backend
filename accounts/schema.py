@@ -118,15 +118,16 @@ class UpdateAssociationInfoMutation(graphene.Mutation):
         values = excludNullFields(inputs, "slug")
 
         association = Association.objects.filter(slug=inputs.slug)
+        
         association_exists = association.exists()
 
         association_returned  = None
         success = False
 
         if association_exists : 
-            association_returned = association.first()
-            if  have_association_permission(association_returned , info.context.user,
-                                        "delete_association_member"):
+        
+            if  have_association_permission(association.first() , info.context.user,
+                                        "update_association_info"):
                 success=True
                 association.update(**values)
                 association_returned = association.first()
@@ -170,7 +171,7 @@ class MemberDeleteMutation(graphene.Mutation):
         member = None
         success = False
         if have_association_permission(_association, info.context.user,
-                                       "update_association_info"):
+                                       "delete_association_member"):
             member = Member.objects.filter(association=_association,
                                            user__key=user).delete()
             success = True

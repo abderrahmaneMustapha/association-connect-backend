@@ -85,6 +85,23 @@ class AccountsMutationsTestCase(TestCase):
 
 
     # mutations tests
+    def test_update_association_info(self):
+        client = Client(schema, context_value=self.req)
+        Member.objects.filter(user=self.user, association=self.association1).update(is_owner=True)
+        query = """
+        mutation{
+            updateAssociationInfo(inputs : {slug:"dz-el-kheir", description:"im a good association"}){
+                success
+            }
+        }
+        """
+
+        response = client.execute(query)
+        assert 'errors' not in response
+
+        association  = Association.objects.get(slug="dz-el-kheir")
+        assert association.description == "im a good association"
+
     def test_update_user_info(self):
         client = Client(schema, context_value=self.req)
         
