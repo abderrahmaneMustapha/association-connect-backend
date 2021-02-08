@@ -62,6 +62,7 @@ FIELD_TYPE_HTML_NAME_CHOICES = [
     ("number", "number"),
     ("image", "image"),
     ("file", "file"),
+    
 ]
 
 FIELD_TYPE_NAME_CHOICES = [
