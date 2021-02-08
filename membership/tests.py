@@ -443,7 +443,7 @@ class MembershipMutationsTestCase(TestCase):
                               association=self.association,
                               is_owner=True)
 
-        data = {"name": "this is my field description"}
+        data =  "this is my field description"
 
         query = """mutation{
             addDataToField(data:\"%s\", field:%s, user:\"%s\"){
