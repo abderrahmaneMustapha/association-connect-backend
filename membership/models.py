@@ -56,9 +56,25 @@ class JoinRequest(models.Model):
     accept = models.BooleanField(_("accept this join request"), default=False)
     updated_at = models.DateTimeField(auto_now=True, null=True)
 
+FIELD_TYPE_HTML_NAME_CHOICES = [
+    ("text", "short-text"),
+    ("textarea", "long-text"),
+    ("number", "number"),
+    ("image", "image"),
+    ("file", "file"),
+]
+
+FIELD_TYPE_NAME_CHOICES = [
+    ( "short-text", "text"),
+    ( "long-text", "textarea"),
+    ("number", "number"),
+    ("image", "image"),
+    ("file", "file"),
+]
+
 class FieldType(models.Model):
-    name = models.CharField("field name", max_length=125)
-    html_name  = models.SlugField("html field name", max_length=225, null=True)
+    name = models.CharField("field name", choices=FIELD_TYPE_NAME_CHOICES, max_length=125)
+    html_name  = models.SlugField("html field name", choices=FIELD_TYPE_HTML_NAME_CHOICES, max_length=225, null=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)
 
