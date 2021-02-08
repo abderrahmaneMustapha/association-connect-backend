@@ -17,3 +17,9 @@ def check_choices(html_name, choices, field):
         else:
             if (len(choices) > 0):
                 raise Exception("this field can not have choices")
+
+
+def validateData(data, field_type):
+    if data:
+        if field_type == "":
+            return
