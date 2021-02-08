@@ -57,28 +57,37 @@ class JoinRequest(models.Model):
     updated_at = models.DateTimeField(auto_now=True, null=True)
 
 FIELD_TYPE_HTML_NAME_CHOICES = [
-    ("text", "short-text"),
+   ("text", "short-text"),
     ("textarea", "long-text"),
     ("number", "number"),
     ("image", "image"),
     ("file", "file"),
-    
+    ("checkbox", "checkbox"),
+    ("radio", "radio"),
+    ("select", "select"),
 ]
 
 FIELD_TYPE_NAME_CHOICES = [
-    ( "short-text", "text"),
+      ( "short-text", "text"),
     ( "long-text", "textarea"),
     ("number", "number"),
     ("image", "image"),
     ("file", "file"),
+    ("checkbox", "checkbox"),
+    ("radio", "radio"),
+    ("select", "select"),
+   
 ]
 
 class FieldType(models.Model):
     name = models.CharField("field name", choices=FIELD_TYPE_NAME_CHOICES, max_length=125)
-    html_name  = models.SlugField("html field name", choices=FIELD_TYPE_HTML_NAME_CHOICES, max_length=225, null=True)
+    html_name  = models.SlugField("html field name", choices=FIELD_TYPE_HTML_NAME_CHOICES, max_length=225,blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)
-
+    def save(self, *args, **kwargs):
+        self.html_name =  [d[0] for  d in FIELD_TYPE_NAME_CHOICES if self.name in d][0]
+        super().save(*args, **kwargs)
+       
     def __str__(self):
         return str(self.name)
 
