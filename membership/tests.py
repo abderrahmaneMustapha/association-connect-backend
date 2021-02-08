@@ -112,10 +112,10 @@ class MembershipMutationsTestCase(TestCase):
         cls.user_payed_cost_to_request = UserPayedCosts.objects.create(
             user=cls.user, cost=cls.cost_form_to_request)
 
-        cls.field_type = FieldType.objects.create(name="char", html_name="text")
-        cls.field_type_checkbox = FieldType.objects.create(name="checkbox", html_name="checkbox")
-        cls.field_type_radio = FieldType.objects.create(name="radio", html_name="radio")
-        cls.field_type_select = FieldType.objects.create(name="select", html_name="select")
+        cls.field_type = FieldType.objects.create(name="short-text")
+        cls.field_type_checkbox = FieldType.objects.create(name="checkbox")
+        cls.field_type_radio = FieldType.objects.create(name="radio")
+        cls.field_type_select = FieldType.objects.create(name="select")
 
         cls.choice1 = Choice.objects.create(text="choice1", name="choice-1")
         cls.choice2 = Choice.objects.create(text="choice2", name="choice-2")
@@ -793,16 +793,20 @@ class MembershipMutationsTestCase(TestCase):
         query = """
            query{
                 getFormFieldType{
-                    name
+                    name,
                 }
             }
         """ 
 
         response = client.execute(query)
+        print(response)
         assert 'errors' not in response
 
         data = response['data']['getFormFieldType']
         assert data is not None 
+
+        field = FieldType.objects.get(name="short-text")
+        print(field.html_name)
     
     def test_get_association_form_filled(self):
         client = Client(schema, context_value=self.req) 
