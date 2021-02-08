@@ -49,6 +49,7 @@ class UserPayedCosts(models.Model):
             raise Exception("You are already a member in this association")
 
         super().save(*args, **kwargs)
+
 class JoinRequest(models.Model):
     user_payed_cost = models.ForeignKey(UserPayedCosts, verbose_name=_("user payed cost"), on_delete=models.CASCADE, null=True, blank=False)
     created_at = models.DateTimeField(auto_now_add=True, null=True)
@@ -60,6 +61,9 @@ class FieldType(models.Model):
     html_name  = models.SlugField("html field name", max_length=225, null=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)
+
+    def __str__(self):
+        return str(self.name)
 
 class Choice(models.Model):
     text = models.CharField(_("choice text"), max_length=125)
@@ -78,17 +82,22 @@ class Field(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)
    
-        
-        
-        
-
-      
 class  FieldData(models.Model):
     field = models.OneToOneField(Field, verbose_name=_("field"), on_delete=models.CASCADE)
     user =  models.ForeignKey(BaseUser, verbose_name=_("user field"), on_delete=models.CASCADE)
     data = models.JSONField(verbose_name=_("field data"))
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)
+
+    def save(self, *args, **kwargs):
+        value= ""
+        try : 
+            value = self.data['data']
+        except  Exception as e:
+            pass
+        
+        
+        super().save(*args, **kwargs)
 
 class FormFilledByUser(models.Model):
     user_payed_cost = models.OneToOneField(UserPayedCosts, verbose_name=_("user payed cost"), on_delete=models.CASCADE, null=True, blank=False)
