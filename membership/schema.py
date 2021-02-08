@@ -351,9 +351,10 @@ class AddFieldData(graphene.Mutation):
                                        user=info.context.user,
                                        permission="manage_association_form"):
 
+            data_dict = {"data" : data}
             _data = FieldData.objects.create(field=_field,
                                              user=_user,
-                                             data=data)
+                                             data=data_dict)
             _data.full_clean()
             success = True
         return AddFieldData(data=_data, success=success)
