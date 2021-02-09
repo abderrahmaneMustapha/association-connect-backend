@@ -2,7 +2,7 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from accounts.models import BaseUser, Association, AssociationMembership, AssociationGroupMember, Member, AssociationGroup
 from phonenumber_field.modelfields import PhoneNumberField
-
+from utils.utils import validateData
 class Form(models.Model):
     association  = models.ForeignKey(Association, verbose_name=_("association"), on_delete=models.CASCADE)
     title =  models.CharField(_("form title"), max_length=125 )
@@ -119,8 +119,10 @@ class  FieldData(models.Model):
         value= ""
         try : 
             value = self.data['data']
-        except  Exception as e:
+            
+        except  KeyError as e:
             pass
+        validateData(data=value ,field_type=self.field.type.name, field_name=self.field.name)
         
         
         super().save(*args, **kwargs)

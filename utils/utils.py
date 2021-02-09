@@ -38,6 +38,17 @@ def excludNullFields(inputs, exclude):
     }
   
 
+def validateData(data, field_type, field_name):
+    if data:
+        if  "email" in field_name.lower() : 
+            pass
+        if field_type == "short-text" :
+            pass
+        
+        if field_type == "long-text" :
+            pass
+    return
+
 
 
 
