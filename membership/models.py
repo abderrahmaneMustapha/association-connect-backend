@@ -2,8 +2,8 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from accounts.models import BaseUser, Association, AssociationMembership, AssociationGroupMember, Member, AssociationGroup
 from phonenumber_field.modelfields import PhoneNumberField
-from utils.utils import validateData
-from utils.forms import ValidateEmailFieldForm, ValidateImageFieldForm, ValidateFileFieldForm, ValidateLongTextFieldForm, ValidateShortTextFieldForm
+from utils.utils import  throwInvalideDataException
+from utils.forms import *
 class Form(models.Model):
     association  = models.ForeignKey(Association, verbose_name=_("association"), on_delete=models.CASCADE)
     title =  models.CharField(_("form title"), max_length=125 )
@@ -116,24 +116,57 @@ class  FieldData(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)
 
-    def full_clean(self, *args, **kwargs):
-        data = self.data
-        if (self.field.type.name == "text"):
-            form = ValidateShortTextFieldForm(data=data)
-            print(form.is_valid)
-        if (self.field.type.name == "textarea"):
-            form = ValidateLongTextFieldForm(data=data)
-            print(form.is_valid)
-        super().full_clean(*args, **kwargs)
+   
 
     def save(self, *args, **kwargs):
         value= ""
         try : 
             value = self.data['data']
+            data = {'data' : value}
+            if (self.field.type.name == "short-text"):
+                form = ValidateShortTextFieldForm(data=data)
+                throwInvalideDataException(form)
+
+            if (self.field.type.name == "long-text"):
+                form = ValidateLongTextFieldForm(data=data)
+                throwInvalideDataException(form)
+
+            if (self.field.type.name == "number"):
+                form = ValidateNumberFieldForm(data=data)
+                throwInvalideDataException(form)
+
+            if(self.field.type.name == "float"):
+                form = ValidateFloatFieldForm(data=data)
+                throwInvalideDataException(form)
+
+            if(self.field.type.name == "date"):
+                form = ValidateDateFieldForm(data=data)
+                throwInvalideDataException(form)
+
+            if(self.field.type.name == "date-time"):
+                form = ValidateDateTimeFieldForm(data=data)
+                throwInvalideDataException(form)
+
+            if(self.field.type.name == "duration"):
+                form = ValidateDurationFieldForm(data=data)
+                throwInvalideDataException(form)
+
+            if(self.field.type.name == "time"):
+                form = ValidateTimeFieldForm(data=data)
+                throwInvalideDataException(form)
+
+            if(self.field.type.name == "image"):
+                form = ValidateImageFieldForm(data=data)
+                throwInvalideDataException(form)
+
+            if(self.field.type.name == "file"):
+                form = ValidateImageFieldForm(data=data)
+                throwInvalideDataException(form)
+            
             
         except  KeyError as e:
-            pass
-        validateData(data=value ,field_type=self.field.type.name, field_name=self.field.label)
+            Exception("Invalide Data")
+
         
         
         super().save(*args, **kwargs)
