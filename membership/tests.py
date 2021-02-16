@@ -488,6 +488,25 @@ class MembershipMutationsTestCase(TestCase):
 
         assert 'errors' not in response
 
+    def test_add_checkbox_field_data_to_form_mutation_faile(self):
+        client = Client(schema, context_value=self.req)
+        Member.objects.create(user=self.user,
+                              association=self.association,
+                              is_owner=True)
+
+        data =  "choice-144"
+
+        query = """mutation{
+            addDataToField(data:\"%s\", field:%s, user:\"%s\"){
+                data{id, field{id, description}},
+                success
+            }
+        }""" % (data, self.checkbox_field.id, self.user.key)
+
+        response = client.execute(query)
+
+        assert 'errors' in response
+
     def test_form_filled_by_user(self):
 
         client = Client(schema, context_value=self.req)
