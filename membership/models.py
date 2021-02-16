@@ -85,6 +85,7 @@ class FieldType(models.Model):
     html_name  = models.SlugField("html field name", choices=FIELD_TYPE_HTML_NAME_CHOICES, max_length=225,blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)
+
     def save(self, *args, **kwargs):
         self.html_name =  [d[0] for  d in FIELD_TYPE_NAME_CHOICES if self.name in d][0]
         super().save(*args, **kwargs)
@@ -109,20 +110,19 @@ class Field(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)
    
-class  FieldData(models.Model):
+class FieldData(models.Model):
     field = models.OneToOneField(Field, verbose_name=_("field"), on_delete=models.CASCADE)
     user =  models.ForeignKey(BaseUser, verbose_name=_("user field"), on_delete=models.CASCADE)
     data = models.JSONField(verbose_name=_("field data"))
     created_at = models.DateTimeField(auto_now_add=True, null=True)
-    updated_at = models.DateTimeField(auto_now=True, null=True)
-
-   
+    updated_at = models.DateTimeField(auto_now=True, null=True) 
 
     def save(self, *args, **kwargs):
         value= ""
         try : 
             value = self.data['data']
             data = {'data' : value}
+            valide_choices_fields = ["checkbox", "radio", "select"]
             if (self.field.type.name == "short-text"):
                 form = ValidateShortTextFieldForm(data=data)
                 throwInvalideDataException(form)
@@ -163,6 +163,10 @@ class  FieldData(models.Model):
                 form = ValidateImageFieldForm(data=data)
                 throwInvalideDataException(form)
             
+            if (self.field.type.name in valide_choices_fields):
+                choices = self.field.choices.all()
+                form = ValidateChoicesFieldForm(data=data,choices=choices)
+                throwInvalideDataException(form)
             
         except  KeyError as e:
             Exception("Invalide Data")
@@ -177,7 +181,6 @@ class FormFilledByUser(models.Model):
     updated_at = models.DateTimeField(auto_now=True, null=True)
 
     def save(self, *args, **kwargs):
-
         #check for the required fields
         fields = Field.objects.filter(form=self.user_payed_cost.cost.form, show_in_form=True, required=True)
         for field in fields:
