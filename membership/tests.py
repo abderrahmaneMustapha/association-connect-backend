@@ -110,8 +110,7 @@ class MembershipMutationsTestCase(TestCase):
         cls.user_payed_cost = UserPayedCosts.objects.create(user=cls.user,
                                                             cost=cls.cost)
 
-        cls.user_payed_cost_to_request = UserPayedCosts.objects.create(
-            user=cls.user, cost=cls.cost_form_to_request)
+    
 
         cls.field_type = FieldType.objects.create(name="short-text")
         cls.field_type_checkbox = FieldType.objects.create(name="checkbox")
@@ -123,6 +122,14 @@ class MembershipMutationsTestCase(TestCase):
         cls.choice3 = Choice.objects.create(text="choice3", name="choice-3")
 
         cls.field = Field.objects.create(form=cls.form_second,
+                                         label="azeaze",
+                                         description="azeaze",
+                                         placeholder="qazeaze",
+                                         show_in_form=True,
+                                         required=True,
+                                         type=cls.field_type)
+
+        cls.field2= Field.objects.create(form=cls.form,
                                          label="azeaze",
                                          description="azeaze",
                                          placeholder="qazeaze",
@@ -154,6 +161,16 @@ class MembershipMutationsTestCase(TestCase):
 
         cls.field_data = FieldData.objects.create(
             field=cls.field_second,
+            user=cls.user,
+            data={"data": "abderrahmane"})
+
+        cls.field_data = FieldData.objects.create(
+            field=cls.checkbox_field,
+            user=cls.user,
+            data={"data": "choice-1"})
+        
+        cls.field_data2 = FieldData.objects.create(
+            field=cls.field2,
             user=cls.user,
             data={"name": "abderrahmane"})
 
@@ -519,7 +536,7 @@ class MembershipMutationsTestCase(TestCase):
 
         response = client.execute(query)
         assert 'errors' not in response
-
+        print(response)
         member_exists = Member.objects.filter(
             user__key=self.user_payed_cost.user.key).exists()
         assert member_exists == True
@@ -535,7 +552,7 @@ class MembershipMutationsTestCase(TestCase):
         assert group_member2_count == 1
 
 
-        group_join_requests_exist = AssociationGroupJoinRequest.objects.filter(user_payed_cost=self.user_payed_cost_to_request).exists()
+        group_join_requests_exist = AssociationGroupJoinRequest.objects.filter(user_payed_cost=self.user_payed_cost).exists()
         
         assert  group_join_requests_exist == False
 
@@ -850,14 +867,14 @@ class MembershipMutationsTestCase(TestCase):
         """ 
 
         response = client.execute(query)
-        print(response)
+  
         assert 'errors' not in response
 
         data = response['data']['getFormFieldType']
         assert data is not None 
 
         field = FieldType.objects.get(name="short-text")
-        print(field.html_name)
+        
     
     def test_get_association_form_filled(self):
         client = Client(schema, context_value=self.req) 
