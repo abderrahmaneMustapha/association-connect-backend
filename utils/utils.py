@@ -37,7 +37,6 @@ def excludNullFields(inputs, exclude):
         if v 
     }
   
-
 def validateData(data, field_type, field_name):
     if data:
         if  "email" in field_name.lower() : 
@@ -51,4 +50,6 @@ def validateData(data, field_type, field_name):
 
 
 
-
+def throwInvalideDataException(form):
+    if not form.is_valid():
+        Exception("Invalide data")
