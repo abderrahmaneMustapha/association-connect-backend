@@ -51,5 +51,5 @@ def validateData(data, field_type, field_name):
 
 
 def throwInvalideDataException(form):
-    if not form.is_valid():
-        Exception("Invalide data")
+    if form.is_valid() ==  False:
+        raise Exception("Invalide data")
