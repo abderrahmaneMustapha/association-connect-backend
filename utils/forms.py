@@ -33,3 +33,19 @@ class ValidateFileFieldForm(forms.Form):
 
 class ValidateImageFieldForm(forms.Form):
     data = forms.ImageField()
+
+class ValidateChoicesFieldForm(forms.Form):
+    data = forms.CharField(max_length=250)
+    def __init__(self, data=None, choices=None, *args, **kwargs):
+        super().__init__(data=data, *args, **kwargs)
+        choices = [choice.name for choice in choices]
+    
+        if data['data'] not in choices :
+            self.add_error("data", "this choice must a be a valide one")
+      
+        
+
+       
+       
+        
+       
