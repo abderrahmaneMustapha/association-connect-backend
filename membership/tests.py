@@ -78,6 +78,7 @@ class MembershipMutationsTestCase(TestCase):
             association=cls.association_add_to_request,
             title="Add new members",
             description=
+
             "we can add new member to this  form by filling the fields here",
             email="assoform@mail.com",
             start_date=date.fromisoformat('2020-12-24'),
@@ -137,6 +138,19 @@ class MembershipMutationsTestCase(TestCase):
             show_in_form=True,
             required=True,
             type=cls.field_type)
+        
+        cls.checkbox_field  = Field.objects.create(
+            form=cls.form,
+            label="new label",
+            description="new label azeaze",
+            placeholder="new label qazeaze",
+            show_in_form=True,
+            required=True,
+            type=cls.field_type_checkbox)
+
+        cls.checkbox_field.choices.add(cls.choice1)
+        cls.checkbox_field.choices.add(cls.choice2)
+        cls.checkbox_field.choices.add(cls.choice3)
 
         cls.field_data = FieldData.objects.create(
             field=cls.field_second,
@@ -451,6 +465,24 @@ class MembershipMutationsTestCase(TestCase):
                 success
             }
         }""" % (data, self.field.id, self.user.key)
+
+        response = client.execute(query)
+
+        assert 'errors' not in response
+    def test_add_checkbox_field_data_to_form_mutation(self):
+        client = Client(schema, context_value=self.req)
+        Member.objects.create(user=self.user,
+                              association=self.association,
+                              is_owner=True)
+
+        data =  "choice-1"
+
+        query = """mutation{
+            addDataToField(data:\"%s\", field:%s, user:\"%s\"){
+                data{id, field{id, description}},
+                success
+            }
+        }""" % (data, self.checkbox_field.id, self.user.key)
 
         response = client.execute(query)
 
