@@ -163,12 +163,7 @@ class MembershipMutationsTestCase(TestCase):
             field=cls.field_second,
             user=cls.user,
             data={"data": "abderrahmane"})
-
-        cls.field_data = FieldData.objects.create(
-            field=cls.checkbox_field,
-            user=cls.user,
-            data={"data": "choice-1"})
-        
+       
         cls.field_data2 = FieldData.objects.create(
             field=cls.field2,
             user=cls.user,
