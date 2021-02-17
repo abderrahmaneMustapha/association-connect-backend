@@ -9,7 +9,7 @@ from .models import Form, Choice, AssociationGroupJoinRequest, Association, Join
 from accounts.utils import have_association_permission
 from django.template.defaultfilters import slugify
 from .utils import check_choices
-from utils.utils import uploadDataToAzureBlobStorage,deleteDataFromAzureBlobStorage
+from utils.utils import uploadDataToAzureBlobStorage,deleteDataFromAzureBlobStorage,validateData
 # object types
 class FormMetaType(DjangoObjectType):
     class Meta:
@@ -352,6 +352,7 @@ class AddFieldData(graphene.Mutation):
                                        permission="manage_association_form"):
 
             data_dict = {"data" : data}
+            validateData(data_dict, _field)
             _data = FieldData.objects.create(field=_field,
                                              user=_user,
                                              data=data_dict)
