@@ -147,6 +147,8 @@ DATABASES = {
     },
 }
 
+GRAPHENE_CONVERT_CHOICES_TO_ENUMS = False
+
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # Password validation
