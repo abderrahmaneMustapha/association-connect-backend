@@ -23,7 +23,7 @@ class FormMetaType(DjangoObjectType):
 class FieldTypeType(DjangoObjectType):
     class Meta:
         model = FieldType
-        fields = ['name']
+        fields = ['name', 'html_name']
 
 
 class CostType(DjangoObjectType):
