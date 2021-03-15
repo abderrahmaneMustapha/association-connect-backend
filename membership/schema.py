@@ -177,9 +177,7 @@ class AddCostsMutation(graphene.Mutation):
 
     @login_required
     def mutate(root, info, inputs):
-        _form = Form.objects.filter(
-            association__slug=inputs[0].association_slug).first()
-       
+        _form = Form.objects.filter(association__slug=inputs[0].association_slug).first()
 
         success = False
         costs = []
@@ -516,15 +514,10 @@ class MembershipQuery(graphene.ObjectType):
     
     @login_required
     def resolve_get_form_by_association_slug(root, info, slug):
-        member = Member.objects.get(user=info.context.user, association__slug=slug)
-        if  have_association_permission(
-                member.association, member.user, "manage_association_form"):
 
-            return Form.objects.filter(association__slug=slug).first()
+        return Form.objects.filter(association__slug=slug).first()
 
-        else:
-
-            return None
+    
 
     @login_required
     def resolve_get_form_showed_fields(root, info, slug):
@@ -538,13 +531,9 @@ class MembershipQuery(graphene.ObjectType):
 
     @login_required
     def resolve_get_form_all_fields(root, info, slug):
-        member = Member.objects.get(user=info.context.user, association__slug=slug)
-
-        if have_association_permission(
-                member.association, member.user, "manage_association_form"):
-            return Field.objects.filter(form__association__slug=slug)
-        else:
-            return None
+      
+        return Field.objects.filter(form__association__slug=slug)
+       
 
     @login_required
     def resolve_get_form_showed_fields_data(root, info, form_id):
@@ -578,13 +567,9 @@ class MembershipQuery(graphene.ObjectType):
 
     @login_required
     def resolve_get_form_all_costs(root, info, slug):
-        member = Member.objects.get(user=info.context.user, association__slug=slug)
-
-        if have_association_permission(member.association, member.user,
-                                       "manage_association_form"):
-            return Costs.objects.filter(form__association__slug=slug)
-        else:
-            return None
+       
+        return Costs.objects.filter(form__association__slug=slug)
+       
 
     @login_required
     def resolve_get_form_showed_costs(root, info, slug):
