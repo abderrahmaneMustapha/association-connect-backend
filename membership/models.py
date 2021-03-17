@@ -28,7 +28,7 @@ class Costs(models.Model):
     updated_at = models.DateTimeField(auto_now=True, null=True)
 
     class Meta:
-        unique_together = [['form', 'title']]
+        unique_together = (('form', 'title'), )
 
 class UserPayedCosts(models.Model):
     cost  = models.ForeignKey(Costs, verbose_name=_("cost payed"), on_delete=models.CASCADE)
