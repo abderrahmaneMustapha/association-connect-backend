@@ -177,14 +177,19 @@ class AddCostsMutation(graphene.Mutation):
 
     @login_required
     def mutate(root, info, inputs):
-        _form = Form.objects.filter(association__slug=inputs[0].association_slug).first()
+        _form = None
+        try:
+            _form = Form.objects.filter(association__slug=inputs[0].association_slug).first()
+        except IndexError:            
+            pass
+        
 
         success = False
         costs = []
 
         if have_association_permission(association=_form.association,
                                        user=info.context.user,
-                                       permission="manage_association_form"):
+                                       permission="manage_association_form") and _form :
             Costs.objects.filter(form=_form).delete()
             for _input in inputs:
                 cost = Costs.objects.create(
